@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peg Solitaire</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .menu {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .menu button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 60px);
+            grid-template-rows: repeat(7, 60px);
+            gap: 5px;
+            background: #8b7355;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .cell.invalid {
+            background: transparent;
+            cursor: default;
+        }
+
+        .cell.empty {
+            background: #d4a574;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        .cell.empty:hover {
+            transform: scale(1.02);
+        }
+
+        .cell.filled {
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .cell.filled:hover {
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+
+        .cell.filled::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            top: 10px;
+            left: 15px;
+        }
+
+        .cell.selected {
+            background: radial-gradient(circle at 30% 30%, #ffd93d, #f59f00);
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.8);
+            transform: scale(1.1);
+        }
+
+        .cell.valid-target {
+            background: #51cf66;
+            box-shadow: 0 0 15px rgba(81, 207, 102, 0.6);
+            animation: pulse 1s infinite;
+        }
+
+        .cell.valid-target:hover {
+            background: #40c057;
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .info {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .controls button {
+            background: #51cf66;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .controls button:hover {
+            background: #40c057;
+            transform: translateY(-2px);
+        }
+
+        .controls button.danger {
+            background: #ff6b6b;
+        }
+
+        .controls button.danger:hover {
+            background: #fa5252;
+        }
+
+        .solver-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .solver-log div {
+            padding: 2px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success {
+            color: #51cf66;
+            font-weight: bold;
+            font-size: 1.5em;
+            text-align: center;
+            margin: 20px 0;
+            animation: celebrate 0.5s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Peg Solitaire</h1>
+        
+        <div id="menu" class="menu">
+            <button onclick="startPlay()">🎮 Play Game</button>
+            <button onclick="startSolve()">🤖 Watch AI Solve</button>
+        </div>
+
+        <div id="gameArea" class="hidden">
+            <div class="info">
+                <div id="pegCount">Pegs Remaining: 32</div>
+                <div id="moveInfo" style="margin-top: 10px; font-size: 0.9em; color: #666;">Click a peg to select, then click where to move</div>
+            </div>
+
+            <div class="board-container">
+                <div id="board" class="board"></div>
+            </div>
+
+            <div class="controls">
+                <button onclick="resetGame()">🔄 Reset</button>
+                <button onclick="backToMenu()" class="danger">🏠 Menu</button>
+            </div>
+
+            <div id="successMessage" class="hidden success"></div>
+        </div>
+
+        <div id="solverArea" class="hidden">
+            <div class="info">
+                <div id="solverStatus">Initializing solver...</div>
+            </div>
+
+            <div class="board-container">
+                <div id="solverBoard" class="board"></div>
+            </div>
+
+            <div class="controls">
+                <button id="solveBtn" onclick="runSolver()">▶️ Start Solving</button>
+                <button id="stopBtn" onclick="stopSolver()" class="danger" style="display:none;">⏹️ Stop</button>
+                <button onclick="backToMenu()" class="danger">🏠 Menu</button>
+            </div>
+
+            <div id="solverLog" class="solver-log hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_NODES = 33;
+
+        class Node {
+            constructor(index) {
+                this.index = index;
+                this.is_filled = 'F';
+                this.left = null;
+                this.right = null;
+                this.up = null;
+                this.down = null;
+            }
+        }
+
+        class Board {
+            constructor() {
+                this.all_nodes = [];
+            }
+
+            copy() {
+                const newBoard = new Board();
+                const nodeMap = [];
+
+                // Create new nodes
+                for (let i = 0; i < this.all_nodes.length; i++) {
+                    const newNode = new Node(this.all_nodes[i].index);
+                    newNode.is_filled = this.all_nodes[i].is_filled;
+                    nodeMap[i] = newNode;
+                }
+
+                // Connect references
+                for (let i = 0; i < this.all_nodes.length; i++) {
+                    const orig = this.all_nodes[i];
+                    const copy = nodeMap[i];
+
+                    for (let j = 0; j < this.all_nodes.length; j++) {
+                        if (orig.left === this.all_nodes[j]) copy.left = nodeMap[j];
+                        if (orig.right === this.all_nodes[j]) copy.right = nodeMap[j];
+                        if (orig.up === this.all_nodes[j]) copy.up = nodeMap[j];
+                        if (orig.down === this.all_nodes[j]) copy.down = nodeMap[j];
+                    }
+                }
+
+                newBoard.all_nodes = nodeMap;
+                return newBoard;
+            }
+
+            countFilled() {
+                return this.all_nodes.filter(n => n.is_filled === 'F').length;
+            }
+        }
+
+        function initBoard() {
+            const board = new Board();
+            const indexMap = Array(7).fill(null).map(() => Array(7).fill(-1));
+            let idx = 0;
+
+            // Create nodes
+            for (let i = 0; i < 7; i++) {
+                for (let j = 0; j < 7; j++) {
+                    if ((i >= 2 && i <= 4) || (j >= 2 && j <= 4)) {
+                        const node = new Node(idx);
+                        board.all_nodes[idx] = node;
+                        indexMap[i][j] = idx++;
+                    }
+                }
+            }
+
+            // Center is empty
+            board.all_nodes[16].is_filled = 'E';
+
+            // Connect neighbors
+            for (let i = 0; i < 7; i++) {
+                for (let j = 0; j < 7; j++) {
+                    const id = indexMap[i][j];
+                    if (id === -1) continue;
+
+                    const n = board.all_nodes[id];
+                    if (i > 0 && indexMap[i-1][j] !== -1) n.up = board.all_nodes[indexMap[i-1][j]];
+                    if (i < 6 && indexMap[i+1][j] !== -1) n.down = board.all_nodes[indexMap[i+1][j]];
+                    if (j > 0 && indexMap[i][j-1] !== -1) n.left = board.all_nodes[indexMap[i][j-1]];
+                    if (j < 6 && indexMap[i][j+1] !== -1) n.right = board.all_nodes[indexMap[i][j+1]];
+                }
+            }
+
+            return board;
+        }
+
+        function tryMove(board, from, over, to) {
+            if (!from || !over || !to) return false;
+            return from.is_filled === 'F' &&
+                   over.is_filled === 'F' &&
+                   to.is_filled === 'E';
+        }
+
+        function move(board, from, over, to) {
+            from.is_filled = 'E';
+            over.is_filled = 'E';
+            to.is_filled = 'F';
+        }
+
+        // Game state
+        let currentBoard = null;
+        let selectedPeg = null;
+        let gameMode = null;
+
+        function createBoardUI(boardElement, board, interactive = true) {
+            boardElement.innerHTML = '';
+            let idx = 0;
+
+            for (let i = 0; i < 7; i++) {
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    if ((i >= 2 && i <= 4) || (j >= 2 && j <= 4)) {
+                        const node = board.all_nodes[idx];
+                        cell.classList.add(node.is_filled === 'F' ? 'filled' : 'empty');
+                        cell.dataset.index = idx;
+                        cell.textContent = idx;
+
+                        if (interactive) {
+                            const currentIndex = idx; // Capture the current index
+                            cell.addEventListener('click', function() {
+                                handleCellClick(currentIndex);
+                            });
+                        }
+
+                        idx++;
+                    } else {
+                        cell.classList.add('invalid');
+                    }
+
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(index) {
+            console.log('Cell clicked:', index);
+            const node = currentBoard.all_nodes[index];
+            console.log('Node:', node);
+            
+            if (!node) {
+                console.log('Node is undefined!');
+                return;
+            }
+
+            if (selectedPeg === null) {
+                // First click - select a peg
+                console.log('No peg selected. Node is_filled:', node.is_filled);
+                if (node.is_filled === 'F') {
+                    selectedPeg = index;
+                    console.log('Selected peg:', selectedPeg);
+                    highlightValidMoves();
+                    document.getElementById('moveInfo').textContent = `Selected peg ${index}. Click a highlighted green space to move.`;
+                }
+            } else {
+                console.log('Peg already selected:', selectedPeg);
+                // If clicking the same peg, deselect it
+                if (index === selectedPeg) {
+                    selectedPeg = null;
+                    updateGameUI();
+                    document.getElementById('moveInfo').textContent = 'Click a peg to select, then click where to move';
+                    return;
+                }
+
+                // Second click - try to move
+                const fromNode = currentBoard.all_nodes[selectedPeg];
+                if (!fromNode) {
+                    console.log('From node is undefined!');
+                    return;
+                }
+                
+                let moved = false;
+
+                // Check up direction
+                if (fromNode.up && fromNode.up.up && fromNode.up.up.index === index) {
+                    console.log('Checking up direction');
+                    if (tryMove(currentBoard, fromNode, fromNode.up, fromNode.up.up)) {
+                        move(currentBoard, fromNode, fromNode.up, fromNode.up.up);
+                        moved = true;
+                        console.log('Moved up!');
+                    }
+                }
+
+                // Check down direction
+                if (!moved && fromNode.down && fromNode.down.down && fromNode.down.down.index === index) {
+                    console.log('Checking down direction');
+                    if (tryMove(currentBoard, fromNode, fromNode.down, fromNode.down.down)) {
+                        move(currentBoard, fromNode, fromNode.down, fromNode.down.down);
+                        moved = true;
+                        console.log('Moved down!');
+                    }
+                }
+
+                // Check left direction
+                if (!moved && fromNode.left && fromNode.left.left && fromNode.left.left.index === index) {
+                    console.log('Checking left direction');
+                    if (tryMove(currentBoard, fromNode, fromNode.left, fromNode.left.left)) {
+                        move(currentBoard, fromNode, fromNode.left, fromNode.left.left);
+                        moved = true;
+                        console.log('Moved left!');
+                    }
+                }
+
+                // Check right direction
+                if (!moved && fromNode.right && fromNode.right.right && fromNode.right.right.index === index) {
+                    console.log('Checking right direction');
+                    if (tryMove(currentBoard, fromNode, fromNode.right, fromNode.right.right)) {
+                        move(currentBoard, fromNode, fromNode.right, fromNode.right.right);
+                        moved = true;
+                        console.log('Moved right!');
+                    }
+                }
+
+                if (moved) {
+                    document.getElementById('moveInfo').textContent = `Moved peg from ${selectedPeg} to ${index}!`;
+                } else if (node.is_filled === 'F') {
+                    // Clicked another peg, select it instead
+                    selectedPeg = index;
+                    updateGameUI();
+                    highlightValidMoves();
+                    document.getElementById('moveInfo').textContent = `Selected peg ${index}. Click a highlighted green space to move.`;
+                    return;
+                } else {
+                    console.log('Invalid move attempted');
+                    document.getElementById('moveInfo').textContent = 'Invalid move! Select a peg and click a valid destination.';
+                }
+
+                selectedPeg = null;
+                updateGameUI();
+
+                if (currentBoard.countFilled() === 1) {
+                    document.getElementById('successMessage').textContent = '🎉 Congratulations! You Won! 🎉';
+                    document.getElementById('successMessage').classList.remove('hidden');
+                    document.getElementById('moveInfo').textContent = 'You are a genius!';
+                }
+            }
+        }
+
+        function highlightValidMoves() {
+            // First, refresh the board to clear any previous highlights
+            createBoardUI(document.getElementById('board'), currentBoard, true);
+            
+            const fromNode = currentBoard.all_nodes[selectedPeg];
+            if (!fromNode) return;
+            
+            const validTargets = [];
+
+            // Check up direction
+            if (fromNode.up && fromNode.up.up) {
+                if (tryMove(currentBoard, fromNode, fromNode.up, fromNode.up.up)) {
+                    validTargets.push(fromNode.up.up.index);
+                }
+            }
+
+            // Check down direction
+            if (fromNode.down && fromNode.down.down) {
+                if (tryMove(currentBoard, fromNode, fromNode.down, fromNode.down.down)) {
+                    validTargets.push(fromNode.down.down.index);
+                }
+            }
+
+            // Check left direction
+            if (fromNode.left && fromNode.left.left) {
+                if (tryMove(currentBoard, fromNode, fromNode.left, fromNode.left.left)) {
+                    validTargets.push(fromNode.left.left.index);
+                }
+            }
+
+            // Check right direction
+            if (fromNode.right && fromNode.right.right) {
+                if (tryMove(currentBoard, fromNode, fromNode.right, fromNode.right.right)) {
+                    validTargets.push(fromNode.right.right.index);
+                }
+            }
+
+            const cells = document.querySelectorAll('#board .cell');
+            cells.forEach(cell => {
+                const idx = parseInt(cell.dataset.index);
+                if (!isNaN(idx)) {
+                    if (idx === selectedPeg) {
+                        cell.classList.add('selected');
+                    } else if (validTargets.includes(idx)) {
+                        cell.classList.remove('empty');
+                        cell.classList.add('valid-target');
+                    }
+                }
+            });
+        }
+
+        function updateGameUI() {
+            createBoardUI(document.getElementById('board'), currentBoard, true);
+            document.getElementById('pegCount').textContent = `Pegs Remaining: ${currentBoard.countFilled()}`;
+        }
+
+        function startPlay() {
+            currentBoard = initBoard();
+            gameMode = 'play';
+            selectedPeg = null;
+
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+
+            updateGameUI();
+        }
+
+        function resetGame() {
+            startPlay();
+        }
+
+        function backToMenu() {
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('solverArea').classList.add('hidden');
+        }
+
+        function startSolve() {
+            currentBoard = initBoard();
+            gameMode = 'solve';
+
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('solverArea').classList.remove('hidden');
+            document.getElementById('solverLog').classList.add('hidden');
+            document.getElementById('solverLog').innerHTML = '';
+
+            createBoardUI(document.getElementById('solverBoard'), currentBoard, false);
+            document.getElementById('solverStatus').textContent = 'Ready to solve!';
+        }
+
+        let solverRunning = false;
+
+        async function runSolver() {
+            solverRunning = true;
+            document.getElementById('solveBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('solverLog').classList.remove('hidden');
+            const log = document.getElementById('solverLog');
+            
+            const stack = [currentBoard.copy()];
+            let iteration = 0;
+            const targetPin = 1;
+
+            while (stack.length > 0 && solverRunning) {
+                const current = stack.pop();
+                const remaining = current.countFilled();
+                iteration++;
+
+                log.innerHTML += `<div>Iteration ${iteration}: ${remaining} pegs remaining</div>`;
+                log.scrollTop = log.scrollHeight;
+
+                if (remaining <= targetPin) {
+                    createBoardUI(document.getElementById('solverBoard'), current, false);
+                    document.getElementById('solverStatus').textContent = `✅ Solved in ${iteration} iterations!`;
+                    log.innerHTML += `<div style="color: #51cf66; font-weight: bold;">SUCCESS! Solved in ${iteration} iterations!</div>`;
+                    document.getElementById('solveBtn').style.display = 'inline-block';
+                    document.getElementById('stopBtn').style.display = 'none';
+                    solverRunning = false;
+                    return;
+                }
+
+                // Generate all possible moves
+                for (let i = 0; i < TOTAL_NODES; i++) {
+                    const from = current.all_nodes[i];
+                    if (!from || from.is_filled !== 'F') continue;
+
+                    // Check up direction
+                    if (from.up && from.up.up) {
+                        if (tryMove(current, from, from.up, from.up.up)) {
+                            const copy = current.copy();
+                            const copyFrom = copy.all_nodes[i];
+                            move(copy, copyFrom, copyFrom.up, copyFrom.up.up);
+                            stack.push(copy);
+                        }
+                    }
+
+                    // Check down direction
+                    if (from.down && from.down.down) {
+                        if (tryMove(current, from, from.down, from.down.down)) {
+                            const copy = current.copy();
+                            const copyFrom = copy.all_nodes[i];
+                            move(copy, copyFrom, copyFrom.down, copyFrom.down.down);
+                            stack.push(copy);
+                        }
+                    }
+
+                    // Check left direction
+                    if (from.left && from.left.left) {
+                        if (tryMove(current, from, from.left, from.left.left)) {
+                            const copy = current.copy();
+                            const copyFrom = copy.all_nodes[i];
+                            move(copy, copyFrom, copyFrom.left, copyFrom.left.left);
+                            stack.push(copy);
+                        }
+                    }
+
+                    // Check right direction
+                    if (from.right && from.right.right) {
+                        if (tryMove(current, from, from.right, from.right.right)) {
+                            const copy = current.copy();
+                            const copyFrom = copy.all_nodes[i];
+                            move(copy, copyFrom, copyFrom.right, copyFrom.right.right);
+                            stack.push(copy);
+                        }
+                    }
+                }
+
+                // Update UI periodically
+                if (iteration % 100 === 0) {
+                    createBoardUI(document.getElementById('solverBoard'), current, false);
+                    document.getElementById('solverStatus').textContent = `Solving... ${remaining} pegs`;
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            if (solverRunning) {
+                document.getElementById('solverStatus').textContent = `No solution found after ${iteration} iterations`;
+            } else {
+                document.getElementById('solverStatus').textContent = `Stopped at iteration ${iteration}`;
+                log.innerHTML += `<div style="color: #ff6b6b; font-weight: bold;">STOPPED by user at iteration ${iteration}</div>`;
+            }
+            
+            document.getElementById('solveBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            solverRunning = false;
+        }
+
+        function stopSolver() {
+            solverRunning = false;
+            document.getElementById('solverStatus').textContent = 'Stopping solver...';
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            // Show menu by default
+        };
+    </script>
+</body>
+</html>
