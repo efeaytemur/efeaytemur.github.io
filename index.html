@@ -203,13 +203,20 @@
     margin-bottom: 1.8rem;
   }
   .edu-item .edu-logo {
-    width: 52px; height: 52px;
+    width: 75px; height: 75px;
     border-radius: 50%;
     background: rgba(255,255,255,0.3);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.2rem; flex-shrink: 0;
     border: 2px solid rgba(255,255,255,0.5);
+     overflow: hidden; 
   }
+  .edu-item .edu-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  padding: 6px; 
+}
   .edu-item .edu-text h3 {
     font-weight: 500; font-size: 0.95rem;
     background: rgba(255,255,255,0.35);
@@ -265,6 +272,7 @@
   .project-card:hover .card-bg { transform: scale(1.04); }
   .card-manim .card-bg { background: linear-gradient(135deg, #c8dff0 0%, #a8cce8 100%); }
   .card-unible .card-bg { background: linear-gradient(135deg, #b8e8c0 0%, #7dc98c 100%); }
+  .card-pegsol .card-bg { background: linear-gradient(135deg, #a30101 0%, #ff2f2f 100%); }
   .project-card .card-content {
     position: relative; z-index: 2;
   }
@@ -278,12 +286,14 @@
   }
   .card-manim .card-logo { background: white; }
   .card-unible .card-logo { background: #5aaf72; }
+  .card-pegsol .card-logo { background: red; }
   .project-card h3 {
     font-family: 'Instrument Serif', serif;
     font-size: 2.2rem; margin-bottom: 0.7rem;
   }
   .card-unible h3 { color: #2d6640; }
   .card-manim h3 { color: #1a3a5c; }
+  .card-pegsol h3 { color: #c70303; }
   .project-card .card-desc {
     display: inline-block;
     padding: 0.5rem 1rem;
@@ -293,6 +303,7 @@
   }
   .card-manim .card-desc { background: #3d7ab5; color: white; }
   .card-unible .card-desc { background: #3d7a52; color: white; }
+  .card-pegsol .card-desc { background: #b53d3d; color: white; }
   .project-badge {
     position: absolute; top: 2rem; right: 2rem;
     font-size: 0.65rem; letter-spacing: 0.15em;
@@ -302,6 +313,7 @@
   }
   .card-unible .project-badge { background: rgba(255,255,255,0.7); color: #2d6640; }
   .card-manim .project-badge { background: rgba(255,255,255,0.7); color: #1a3a5c; }
+  .card-pegsol .project-badge { background: rgba(255,255,255,0.7); color: #ba4040; }
 
   /* ── FOOTER ── */
   footer {
@@ -377,13 +389,16 @@
     </div>
   </div>
   <div class="hero-content">
-    <p class="hero-eyebrow">Portfolio · Istanbul, Turkey</p>
+    <p class="hero-eyebrow">Istanbul, Turkey</p>
     <h1 class="hero-name">Selim Efe<br>Aytemur</h1>
     <p class="hero-title">Software Engineer &nbsp;·&nbsp; 21 y.o.</p>
     <div class="hero-tags">
       <span class="tag">ML Systems</span>
       <span class="tag">Software Architecture</span>
       <span class="tag">System Optimization</span>
+      <span class="tag">Deep Learning Researcher</span>
+      <span class="tag">Software Developer</span>
+      <span class="tag">Reinforcement Learning</span>
     </div>
     <a href="#about" class="hero-btn">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="2" x2="8" y2="14"/><polyline points="4,10 8,14 12,10"/></svg>
@@ -412,7 +427,7 @@
     <div class="about-photo-wrap">
       
       <div style="width:100%;height:100%;background:linear-gradient(170deg,#ffd98a 0%,#c8a060 100%);display:flex;align-items:center;justify-content:center;">
-        <span > <img src="efe1.jpg"></span>
+        <span > <a href="https://www.linkedin.com/in/selim-efe-a-676a8a287/" > <img src="efe1.jpg"> <a> </span>
         
       </div>
       <div class="about-photo-accent"></div>
@@ -428,14 +443,18 @@
       Education
     </h2>
     <div class="edu-item">
-      <div class="edu-logo">🎓</div>
+      <div class="edu-logo">
+        <img src="itu.png" alt="ITU_LOGO">
+      </div>
       <div class="edu-text">
         <h3>Istanbul Technical University</h3>
         <p>Computer Engineering · Bachelor Degree</p>
       </div>
     </div>
     <div class="edu-item">
-      <div class="edu-logo">🏫</div>
+      <div class="edu-logo">
+        <img src="CAL.png" alt="CAL_LOGO">
+      </div>
       <div class="edu-text">
         <h3>Istanbul Cagaloglu Highschool</h3>
       </div>
