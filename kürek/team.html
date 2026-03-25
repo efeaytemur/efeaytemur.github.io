@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Programımız— İstanbul Teknik Üniversitesi <span>Kürek Takımı</span></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: #0a1628; --deep: #0d1f3c; --water: #1a3a5c; --slate: #2d5986;
+      --mist: #7bafd4; --foam: #c8dff0; --gold: #c8a84b; --gold-light: #e8c96a;
+      --white: #f5f0e8; --cream: #ede8dc;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.4rem 5vw;
+      background: rgba(10,22,40,0.96);
+      border-bottom: 1px solid rgba(200,168,75,0.15);
+    }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--gold); letter-spacing: 0.05em; text-decoration: none; }
+    .nav-logo span { color: var(--foam); font-weight: 400; font-style: italic; }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--foam); text-decoration: none; opacity: 0.8; transition: opacity 0.2s, color 0.2s; }
+    .nav-links a:hover { opacity: 1; color: var(--gold); }
+    .nav-links a.active { color: var(--gold); opacity: 1; }
+    .nav-cta { background: var(--gold); color: var(--navy) !important; padding: 0.55rem 1.4rem; opacity: 1 !important; border-radius: 2px; font-weight: 700 !important; }
+    .nav-cta:hover { background: var(--gold-light) !important; }
+
+    /* PAGE HERO */
+    .page-hero {
+      padding: 10rem 5vw 5rem;
+      background: linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%);
+      position: relative; overflow: hidden;
+    }
+    .page-hero::before {
+      content: ''; position: absolute; right: -100px; top: 50%;
+      transform: translateY(-50%);
+      width: 700px; height: 700px;
+      border: 1px solid rgba(200,168,75,0.06);
+      border-radius: 50%;
+    }
+    .page-hero::after {
+      content: ''; position: absolute; right: -60px; top: 50%;
+      transform: translateY(-50%);
+      width: 500px; height: 500px;
+      border: 1px solid rgba(200,168,75,0.06);
+      border-radius: 50%;
+    }
+    .breadcrumb {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--mist);
+      margin-bottom: 1.2rem; opacity: 0.7;
+    }
+    .breadcrumb a { color: var(--gold); text-decoration: none; }
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      font-weight: 900; line-height: 0.95;
+      color: var(--white); max-width: 700px;
+    }
+    .page-title em { color: var(--gold); font-style: italic; }
+    .page-subtitle {
+      max-width: 560px; margin-top: 1.5rem;
+      font-size: 1.05rem; font-weight: 300; line-height: 1.8; color: var(--foam);
+    }
+    .divider { width: 60px; height: 3px; background: linear-gradient(to right, var(--gold), transparent); margin: 1.5rem 0; }
+    .section-tag { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; display: block; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; line-height: 1.05; color: var(--white); margin-bottom: 1.5rem; }
+    .section-title em { color: var(--gold); font-style: italic; }
+    .section-body { font-size: 1.05rem; font-weight: 300; line-height: 1.8; color: var(--foam); max-width: 65ch; }
+
+    section { padding: 6rem 5vw; }
+
+    /* PROGRAMS */
+    #programs { background: var(--deep); }
+    .program-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+    .program-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(123,175,212,0.1);
+      border-top: 3px solid var(--gold);
+      padding: 2rem; border-radius: 0 0 4px 4px;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .program-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-4px); }
+    .program-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .program-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.05em; color: var(--white); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .program-level { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+    .program-desc { font-size: 0.9rem; font-weight: 300; line-height: 1.7; color: var(--mist); }
+    .program-details { margin-top: 1.2rem; display: flex; gap: 1.2rem; font-size: 0.8rem; color: var(--mist); opacity: 0.7; }
+    .program-details span::before { content: '· '; color: var(--gold); }
+
+    /* FULL ROSTER */
+    #roster { background: var(--navy); }
+    .roster-grid { margin-top: 3rem; display: grid; gap: 1px; background: rgba(123,175,212,0.08); border: 1px solid rgba(123,175,212,0.08); border-radius: 4px; overflow: hidden; }
+    .roster-header { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; background: rgba(200,168,75,0.1); padding: 0.9rem 1.5rem; }
+    .roster-header span { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+    .roster-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; padding: 1.1rem 1.5rem; background: var(--navy); transition: background 0.2s; align-items: center; }
+    .roster-row:hover { background: var(--deep); }
+    .roster-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--white); }
+    .roster-role { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--gold); }
+    .roster-years { font-size: 0.85rem; color: var(--mist); font-weight: 300; }
+    .roster-boat { font-size: 0.85rem; color: var(--foam); font-weight: 300; }
+
+    /* COACHES */
+    #coaches { background: var(--deep); }
+    .coaches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .coach-card {
+      border: 1px solid rgba(123,175,212,0.1);
+      border-radius: 4px; padding: 2rem;
+      background: rgba(255,255,255,0.02);
+      position: relative; overflow: hidden;
+      transition: background 0.2s;
+    }
+    .coach-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(to right, var(--gold), var(--mist));
+    }
+    .coach-card:hover { background: rgba(255,255,255,0.05); }
+    .coach-avatar { width: 70px; height: 70px; background: var(--water); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1.2rem; }
+    .coach-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--white); margin-bottom: 0.3rem; }
+    .coach-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+    .coach-bio { font-size: 0.9rem; font-weight: 300; line-height: 1.7; color: var(--mist); }
+    .coach-credentials { margin-top: 1.2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .cred-tag { background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.2); color: var(--gold); font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 2px; }
+
+    /* GALLERY PLACEHOLDER */
+    #gallery { background: var(--navy); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 200px 200px; gap: 0.8rem; margin-top: 3rem; }
+    .gallery-cell {
+      background: var(--water);
+      border-radius: 4px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    .gallery-cell:hover { opacity: 1; }
+    .gallery-cell:first-child { grid-row: span 2; font-size: 5rem; background: linear-gradient(135deg, var(--water), var(--slate)); }
+    .gallery-cell:nth-child(2) { background: linear-gradient(135deg, var(--deep), var(--water)); }
+    .gallery-cell:nth-child(3) { background: linear-gradient(135deg, var(--slate), var(--navy)); }
+    .gallery-cell:nth-child(4) { background: linear-gradient(135deg, var(--navy), var(--water)); }
+    .gallery-cell:nth-child(5) { background: linear-gradient(135deg, var(--water), var(--deep)); }
+
+    /* CTA */
+    #cta { background: var(--gold); text-align: center; padding: 5rem 5vw; }
+    #cta .section-title { color: var(--navy); }
+    #cta .section-title em { color: var(--deep); }
+    #cta .section-body { color: rgba(10,22,40,0.75); margin: 0 auto 2.5rem; }
+    .btn-dark { background: var(--navy); color: var(--gold); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 1rem 2.2rem; text-decoration: none; border-radius: 2px; display: inline-block; transition: background 0.2s; }
+    .btn-dark:hover { background: var(--deep); }
+    .btn-outline-dark { border: 2px solid var(--navy); color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 1rem 2.2rem; text-decoration: none; border-radius: 2px; display: inline-block; transition: background 0.2s; }
+    .btn-outline-dark:hover { background: rgba(10,22,40,0.1); }
+
+    footer { background: #060e1a; padding: 3rem 5vw; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2rem; border-top: 1px solid rgba(200,168,75,0.1); }
+    .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 900; color: var(--gold); }
+    .footer-brand span { color: var(--foam); font-style: italic; font-weight: 400; }
+    .footer-tagline { color: var(--mist); font-size: 0.85rem; font-weight: 300; margin-top: 0.3rem; }
+    .footer-links { display: flex; gap: 1.8rem; flex-wrap: wrap; }
+    .footer-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mist); text-decoration: none; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
+    .footer-links a:hover { opacity: 1; color: var(--gold); }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s, transform 0.7s; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .roster-header, .roster-row { grid-template-columns: 1fr 1fr; }
+      .roster-years, .roster-boat { display: none; }
+      .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+      .gallery-cell:first-child { grid-row: span 1; }
+      footer { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">İTÜ <span>Kürek Takımı</span></a>
+    <ul class="nav-links">
+     <li><a href="index.html#about">Hakkımızda</a></li>
+      <li><a href="index.html#team">Takım</a></li>
+      <li><a href="index.html#schedule">Takvim</a></li>
+      <li><a href="team.html" class="active">Programımız</a></li>
+      <li><a href="reservation.html" class="nav-cta">Yerinizi Ayırtın</a></li>
+    </ul>
+  </nav>
+
+
+  <div class="page-hero">
+    <div class="breadcrumb"><a href="index.html">Anasayfa</a> / Programımız</div>
+    <h1 class="page-title">Antrenman.<br><em>Topluluk.</em><br>Mükemmellik.</h1>
+    <div class="divider"></div>
+    <p class="page-subtitle">Programlarımızın tamamını keşfedin, kadrodaki her antrenör ve sporcuyla tanışın ve suda kendi yolunuzu bulun.</p>
+  </div>
+
+  <!-- PROGRAMS -->
+  <section id="programs">
+    <span class="section-tag reveal">Yollar</span>
+    <h2 class="section-title reveal"><em>Programınızı </em>bulun.</h2>
+    <p class="section-body reveal">Başlangıç ​​seviyesinden ulusal yarışmalara kadar her yetenek seviyesine uygun yapılandırılmış programlar sunuyoruz.</p>
+    <div class="program-grid">
+      <div class="program-card reveal">
+        <div class="program-icon">🌊</div>
+        <div class="program-name">Küreğe Giriş</div>
+        <div class="program-level">Başlangıç · Her Yaş</div>
+        <div class="program-desc">Daha önce hiç kürek çekmediniz mi? Mükemmel. Dört haftalık başlangıç ​​kursumuz, eğlenceli ve destekleyici bir ortamda denge, kürek çekme tekniği, su güvenliği ve takım kürekçiliğini kapsar.</div>
+        <div class="program-details"><span>4 hafta</span><span>Cts & Paz</span><span>4 kişi bir teknede</span></div>
+      </div>
+      <div class="program-card reveal">
+        <div class="program-icon">🚣</div>
+        <div class="program-name">Hobi Olarak Kürek Çekmek</div>
+        <div class="program-level">Her Seviye · Aktif</div>
+        <div class="program-desc">JEğlence amaçlı kürek takımımıza katılın. Rekabet baskısı olmadan spor ve sosyal hayattan keyif alanlar için mükemmel bir seçenek.</div>
+        <div class="program-details"><span>Yıl Boyunca</span><span>Cts & Paz</span><span>20 members</span></div>
+      </div>
+      <div class="program-card reveal">
+        <div class="program-icon">🏆</div>
+        <div class="program-name">Yarış Takımı</div>
+        <div class="program-level">İleri ve Seçkin</div>
+        <div class="program-desc">Amiral gemisi niteliğindeki rekabetçi programımız, bölgesel ve ulusal kürek yarışları için her gün antrenman yapmaktadır. Sporcular her sezon performans değerlendirmesiyle seçilir</div>
+        <div class="program-details"><span>Sezon Özel</span><span>her hafta 5x</span><span>Seçim Gerekli</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COACHES -->
+  <section id="coaches">
+    <span class="section-tag reveal">Koçlarımız</span>
+    <h2 class="section-title reveal"><em>Şampiyonlar</em>'dan Destek</h2>
+    <p class="section-body reveal">Kadromuzdaki her antrenör, rekabet deneyimi ve her seviyedeki sporcuları geliştirme tutkusunun eşsiz bir kombinasyonunu sunmaktadır.</p>
+    <div class="coaches-grid">
+      <div class="coach-card reveal">
+        <div class="coach-avatar">👤</div>
+        <div class="coach-name">Berk Hakyol</div>
+        <div class="coach-title">Head Coach</div>
+        <div class="coach-bio">Marcus spent 12 years on the national circuit, winning two European golds before turning to coaching. His methodical, athlete-first philosophy has produced 14 national-level rowers.</div>
+        <div class="coach-credentials">
+          <span class="cred-tag">Olympic Athlete</span>
+          <span class="cred-tag">20 yrs coaching</span>
+          <span class="cred-tag">FISA Certified</span>
+        </div>
+      </div>
+      <div class="coach-card reveal">
+        <div class="coach-avatar">👤</div>
+        <div class="coach-name">Lena Bauer</div>
+        <div class="coach-title">Assistant Coach · Sculling</div>
+        <div class="coach-bio">A specialist in sculling technique, Lena joined the club after a decade competing on the Masters circuit. She now leads our single and double sculls programs with extraordinary attention to blade work.</div>
+        <div class="coach-credentials">
+          <span class="cred-tag">Sculling Specialist</span>
+          <span class="cred-tag">Masters Champion</span>
+        </div>
+      </div>
+  </section>
+
+  <!-- FULL ROSTER -->
+  <section id="roster">
+    <span class="section-tag reveal">Sporcularımız</span>
+    <h2 class="section-title reveal">Tüm <em>Ekibimiz.</em></h2>
+    <div class="roster-grid reveal">
+      <div class="roster-header">
+        <span>Sporcu</span>
+        <span>Rol/ Posizyon</span>
+        <span>Yıl</span>
+        <span>Bot Türü</span>
+      </div>
+      <div class="roster-row"><div class="roster-name">Sophia Chen</div><div class="roster-role">Captain · Stroke</div><div class="roster-years">6 yrs</div><div class="roster-boat">Women's Eight</div></div>
+      <div class="roster-row"><div class="roster-name">Tobias Reimer</div><div class="roster-role">Captain · Stroke</div><div class="roster-years">5 yrs</div><div class="roster-boat">Men's Eight</div></div>
+      <div class="roster-row"><div class="roster-name">Amara Diallo</div><div class="roster-role">Coxswain</div><div class="roster-years">4 yrs</div><div class="roster-boat">Women's Eight</div></div>
+      <div class="roster-row"><div class="roster-name">James Okafor</div><div class="roster-role">Bow</div><div class="roster-years">3 yrs</div><div class="roster-boat">Men's Four</div></div>
+      <div class="roster-row"><div class="roster-name">Nadia Volkov</div><div class="roster-role">Seat 3</div><div class="roster-years">4 yrs</div><div class="roster-boat">Women's Four</div></div>
+      <div class="roster-row"><div class="roster-name">Henrik Sørensen</div><div class="roster-role">Seat 5</div><div class="roster-years">2 yrs</div><div class="roster-boat">Men's Eight</div></div>
+      <div class="roster-row"><div class="roster-name">Priya Sharma</div><div class="roster-role">Sculler</div><div class="roster-years">3 yrs</div><div class="roster-boat">Double Scull</div></div>
+      <div class="roster-row"><div class="roster-name">Oliver Whitmore</div><div class="roster-role">Sculler</div><div class="roster-years">5 yrs</div><div class="roster-boat">Single Scull</div></div>
+      <div class="roster-row"><div class="roster-name">Yuki Tanaka</div><div class="roster-role">Seat 2</div><div class="roster-years">1 yr</div><div class="roster-boat">Women's Eight</div></div>
+      <div class="roster-row"><div class="roster-name">Remy Fontaine</div><div class="roster-role">Seat 4</div><div class="roster-years">2 yrs</div><div class="roster-boat">Men's Four</div></div>
+      <div class="roster-row"><div class="roster-name">Clara Hoffmann</div><div class="roster-role">Coxswain</div><div class="roster-years">3 yrs</div><div class="roster-boat">Mixed Eight</div></div>
+      <div class="roster-row"><div class="roster-name">Samuel Osei</div><div class="roster-role">Engine Room</div><div class="roster-years">4 yrs</div><div class="roster-boat">Men's Eight</div></div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery">
+    <span class="section-tag reveal">Sudaki keyifli zamanımız</span>
+    <h2 class="section-title reveal">Fotoğraf <em>galerimiz.</em></h2>
+    <div class="gallery-grid reveal">
+      <div class="gallery-cell">🚣</div>
+      <div class="gallery-cell">🌊</div>
+      <div class="gallery-cell">🏆</div>
+      <div class="gallery-cell">⛵</div>
+      <div class="gallery-cell">🎽</div>
+    </div>
+    <p style="margin-top:1.2rem; color: var(--mist); font-size:0.85rem; font-weight:300; opacity:0.6;">(Upload your club photos to replace these placeholders)</p>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <span class="section-tag" style="color:var(--navy)">Hazır mısın?</span>
+    <h2 class="section-title"><br><em>Sudaki</em> yerinizi alın.</h2>
+    <p class="section-body">Bir seans rezervasyonu yapın, bir programı deneyin veya bizimle iletişime geçin. Kapımız ve kayıkhanemiz her zaman açık.</p>
+    <div style="display:flex; gap:1.2rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem;">
+      <a href="reservation.html" class="btn-dark">Yerinizi Ayırtın.</a>
+      <a href="index.html#join" class="btn-outline-dark">Daha Fazla</a>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <div class="footer-brand">İstanbul Teknik Üniversitesi <span>Kürek Takımı</span></div>
+      <div class="footer-tagline">1773'ten beri· Suda kusursuzluk.</div>
+    </div>
+    <div class="footer-links">
+      <a href="#about">Hakkımızda</a>
+      <a href="#team">Takım</a>
+      <a href="#schedule">Takvim</a>
+      <a href="team.html">Program</a>
+      <a href="reservation.html">Rezervasyon</a>
+    </div>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 80); });
+    }, { threshold: 0.08 });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

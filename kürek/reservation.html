@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Yerinizi Ayırtın — İstanbul Teknik Üniversitesi <span>Kürek Takımı</span></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --navy: #0a1628; --deep: #0d1f3c; --water: #1a3a5c; --slate: #2d5986;
+      --mist: #7bafd4; --foam: #c8dff0; --gold: #c8a84b; --gold-light: #e8c96a;
+      --white: #f5f0e8; --cream: #ede8dc;
+      --success: #4a9e6f; --error: #c84b4b;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--navy); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; min-height: 100vh; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.4rem 5vw;
+      background: rgba(10,22,40,0.96);
+      border-bottom: 1px solid rgba(200,168,75,0.15);
+    }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--gold); letter-spacing: 0.05em; text-decoration: none; }
+    .nav-logo span { color: var(--foam); font-weight: 400; font-style: italic; }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--foam); text-decoration: none; opacity: 0.8; transition: opacity 0.2s, color 0.2s; }
+    .nav-links a:hover { opacity: 1; color: var(--gold); }
+    .nav-links a.active { color: var(--gold); opacity: 1; }
+
+    /* PAGE LAYOUT */
+    .page-wrapper {
+      display: grid; grid-template-columns: 1fr 1.4fr;
+      min-height: 100vh; padding-top: 80px;
+    }
+
+    /* LEFT PANEL */
+    .left-panel {
+      background: var(--deep);
+      padding: 4rem 3.5rem;
+      border-right: 1px solid rgba(123,175,212,0.08);
+      position: sticky; top: 80px; height: calc(100vh - 80px);
+      overflow-y: auto;
+    }
+    .breadcrumb { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mist); margin-bottom: 1.5rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--gold); text-decoration: none; }
+    .panel-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; line-height: 1; color: var(--white); margin-bottom: 0.5rem; }
+    .panel-title em { color: var(--gold); font-style: italic; }
+    .divider { width: 50px; height: 3px; background: linear-gradient(to right, var(--gold), transparent); margin: 1.5rem 0; }
+    .panel-desc { font-size: 0.95rem; font-weight: 300; line-height: 1.75; color: var(--mist); }
+
+    /* INFO CARDS */
+    .info-cards { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .info-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(123,175,212,0.08);
+      border-left: 3px solid var(--gold); padding: 1.2rem 1.4rem;
+      border-radius: 0 4px 4px 0;
+    }
+    .info-card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem; }
+    .info-card-body { font-size: 0.85rem; font-weight: 300; color: var(--mist); line-height: 1.6; }
+
+    /* RIGHT PANEL - FORM */
+    .right-panel { padding: 4rem 4vw; background: var(--navy); }
+
+    /* STEP INDICATOR */
+    .steps {
+      display: flex; align-items: center; gap: 0; margin-bottom: 3rem;
+    }
+    .step {
+      display: flex; align-items: center; gap: 0.8rem;
+      font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--mist); opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+    .step.active { opacity: 1; color: var(--gold); }
+    .step.done { opacity: 0.7; color: var(--mist); }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    .step.active .step-num { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+    .step.done .step-num { background: var(--slate); border-color: var(--slate); color: var(--white); }
+    .step-connector { flex: 1; height: 1px; background: rgba(123,175,212,0.15); margin: 0 0.8rem; max-width: 60px; }
+
+    /* FORM PANELS */
+    .form-step { display: none; animation: fadeIn 0.4s ease; }
+    .form-step.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .form-heading {
+      font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900;
+      color: var(--white); margin-bottom: 0.5rem;
+    }
+    .form-heading em { color: var(--gold); font-style: italic; }
+    .form-subheading { font-size: 0.9rem; font-weight: 300; color: var(--mist); margin-bottom: 2.5rem; line-height: 1.6; }
+
+    /* OPTION CARDS */
+    .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+    .option-card {
+      border: 2px solid rgba(123,175,212,0.12);
+      border-radius: 6px; padding: 1.3rem;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      background: rgba(255,255,255,0.02);
+      position: relative;
+    }
+    .option-card:hover { border-color: rgba(200,168,75,0.4); background: rgba(200,168,75,0.04); }
+    .option-card.selected { border-color: var(--gold); background: rgba(200,168,75,0.08); }
+    .option-card.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; color: var(--gold); font-weight: 700; font-size: 0.85rem; }
+    .option-icon { font-size: 1.8rem; margin-bottom: 0.6rem; }
+    .option-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--white); margin-bottom: 0.3rem; }
+    .option-detail { font-size: 0.8rem; font-weight: 300; color: var(--mist); line-height: 1.5; }
+    .option-badge { display: inline-block; margin-top: 0.5rem; background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.2); color: var(--gold); font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 2px; }
+
+    /* DATE / TIME SLOTS */
+    .slot-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem; display: block; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; margin-bottom: 2rem; }
+    .cal-day { text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mist); opacity: 0.5; padding: 0.4rem 0; }
+    .cal-cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 400; color: var(--foam);
+      border: 1px solid transparent; border-radius: 4px; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .cal-cell:hover:not(.unavailable):not(.empty) { background: rgba(200,168,75,0.1); border-color: rgba(200,168,75,0.3); }
+    .cal-cell.selected { background: var(--gold); color: var(--navy); font-weight: 700; }
+    .cal-cell.unavailable { opacity: 0.25; cursor: not-allowed; text-decoration: line-through; }
+    .cal-cell.empty { cursor: default; }
+    .cal-cell.today { border-color: rgba(123,175,212,0.3); color: var(--mist); }
+
+    .time-slots { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 2rem; }
+    .time-slot {
+      font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 600;
+      letter-spacing: 0.05em; border: 1px solid rgba(123,175,212,0.15);
+      padding: 0.6rem 1.1rem; border-radius: 4px; cursor: pointer; color: var(--foam);
+      transition: background 0.15s, border-color 0.15s;
+      background: rgba(255,255,255,0.02);
+    }
+    .time-slot:hover:not(.full) { background: rgba(200,168,75,0.08); border-color: rgba(200,168,75,0.3); }
+    .time-slot.selected { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 700; }
+    .time-slot.full { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+
+    /* FORM FIELDS */
+    .field-group { margin-bottom: 1.5rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    label { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+    input, select, textarea {
+      width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(123,175,212,0.15);
+      border-radius: 4px; padding: 0.9rem 1rem; font-family: 'Barlow', sans-serif;
+      font-size: 0.95rem; font-weight: 300; color: var(--white); outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); background: rgba(255,255,255,0.06); }
+    input::placeholder, textarea::placeholder { color: var(--mist); opacity: 0.4; }
+    select option { background: var(--deep); color: var(--white); }
+    textarea { resize: vertical; min-height: 100px; }
+
+    .checkbox-group { display: flex; align-items: flex-start; gap: 0.8rem; }
+    .checkbox-group input[type="checkbox"] { width: auto; margin-top: 3px; accent-color: var(--gold); }
+    .checkbox-group label { font-family: 'Barlow', sans-serif; font-size: 0.85rem; font-weight: 300; letter-spacing: 0; text-transform: none; color: var(--mist); margin-bottom: 0; cursor: pointer; }
+    .checkbox-group label a { color: var(--gold); }
+
+    /* BOOKING SUMMARY */
+    .summary-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 6px; padding: 1.8rem; margin-bottom: 2rem;
+    }
+    .summary-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
+    .summary-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.8rem; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(123,175,212,0.08); }
+    .summary-row:last-child { border-bottom: none; margin-bottom: 0; }
+    .summary-key { font-size: 0.85rem; font-weight: 300; color: var(--mist); }
+    .summary-val { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--white); text-align: right; }
+    .summary-val.highlight { color: var(--gold); }
+
+    /* BUTTONS */
+    .btn-row { display: flex; gap: 1rem; justify-content: space-between; align-items: center; margin-top: 2rem; }
+    .btn-back { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mist); background: none; border: none; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; padding: 0; }
+    .btn-back:hover { opacity: 1; }
+    .btn-next {
+      background: var(--gold); color: var(--navy);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 1rem 2.2rem;
+      border: none; border-radius: 2px; cursor: pointer; transition: background 0.2s, transform 0.2s;
+    }
+    .btn-next:hover { background: var(--gold-light); transform: translateY(-2px); }
+    .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* SUCCESS STATE */
+    .success-panel {
+      display: none; text-align: center; padding: 3rem 0;
+      animation: fadeIn 0.5s ease;
+    }
+    .success-panel.show { display: block; }
+    .success-icon { font-size: 4rem; margin-bottom: 1.5rem; animation: bounceIn 0.6s ease; }
+    @keyframes bounceIn { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+    .success-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--white); margin-bottom: 0.8rem; }
+    .success-title em { color: var(--gold); font-style: italic; }
+    .success-body { font-size: 1rem; font-weight: 300; color: var(--mist); line-height: 1.8; max-width: 480px; margin: 0 auto 2rem; }
+    .success-ref { display: inline-block; background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.3); color: var(--gold); font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.15em; padding: 0.6rem 1.4rem; border-radius: 2px; margin-bottom: 2rem; }
+    .btn-home { display: inline-block; background: var(--gold); color: var(--navy); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 1rem 2.2rem; border-radius: 2px; text-decoration: none; transition: background 0.2s; }
+    .btn-home:hover { background: var(--gold-light); }
+
+    footer { background: #060e1a; padding: 2rem 5vw; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2rem; border-top: 1px solid rgba(200,168,75,0.1); }
+    .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 900; color: var(--gold); }
+    .footer-brand span { color: var(--foam); font-style: italic; font-weight: 400; }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .footer-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mist); text-decoration: none; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
+    .footer-links a:hover { opacity: 1; color: var(--gold); }
+
+    @media (max-width: 900px) {
+      .page-wrapper { grid-template-columns: 1fr; }
+      .left-panel { position: static; height: auto; padding: 3rem 2rem; }
+      .nav-links { display: none; }
+      .option-grid { grid-template-columns: 1fr; }
+      .field-row { grid-template-columns: 1fr; }
+      footer { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">İTÜ <span>Kürek Takımı</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#about">Hakkımızda</a></li>
+      <li><a href="index.html#team">Takım</a></li>
+      <li><a href="index.html#schedule">Takvim</a></li>
+      <li><a href="team.html">Programımız</a></li>
+      <li><a href="reservation.html" class="nav-cta">Yerinizi Ayırtın</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-wrapper">
+
+    <!-- LEFT INFO PANEL -->
+    <div class="left-panel">
+      <div class="breadcrumb"><a href="index.html">Ana Sayfa</a> / Rezervasyon</div>
+      <h1 class="panel-title">Takımda<br>yerinizi <em>ayırtın.</em></h1>
+      <div class="divider"></div>
+      <p class="panel-desc">Bir eğitim seansı rezervasyonu yapın, bir yelken yarışına kaydolun veya programlarımızdan birinde yerinizi ayırtın. Ekibimiz rezervasyonunuzu 24 saat içinde onaylayacaktır.
+
+      <div class="info-cards">
+        <div class="info-card">
+          <div class="info-card-title">📍 Lokasyon</div>
+          <div class="info-card-body">Crestwater Boathouse<br>14 River Lane, North Basin<br>Sessions launch from Dock B</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">⏰ Antrenman Saatleri</div>
+          <div class="info-card-body">Mon–Fri: 6:00 AM – 8:00 PM<br>Saturday: 7:00 AM – 2:00 PM<br>Sunday: Members only</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">📞 İletişim</div>
+          <div class="info-card-body">info@crestwaterrowing.com<br>+1 (555) 048-2210<br>Walk-ins welcome at the boathouse</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">⚠️ Neler Getirmelisiniz</div>
+          <div class="info-card-body">Rahat spor kıyafetleri, su şişesi, güneş kremi.Havaya uygun yanımıza yedek kıyafetler de alabiliriz</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT FORM PANEL -->
+    <div class="right-panel">
+
+      <!-- STEP INDICATOR -->
+      <div class="steps" id="stepsIndicator">
+        <div class="step active" data-step="1"><div class="step-num">1</div> Seans Türü</div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="2"><div class="step-num">2</div> Tarih ve Zaman</div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="3"><div class="step-num">3</div> Katılımcı Bilgileri</div>
+        <div class="step-connector"></div>
+        <div class="step" data-step="4"><div class="step-num">4</div> Onayla</div>
+      </div>
+
+      <!-- STEP 1: SESSION TYPE -->
+      <div class="form-step active" id="step1">
+        <h2 class="form-heading">Hangi <em>seans?</em></h2>
+        <p class="form-subheading">Hedefinize en uygun seansı seçin. Merak etmeyin, size özel olarak uyarlayacağız.</p>
+        <div class="option-grid">
+          <div class="option-card" data-type="intro" onclick="selectOption(this, 'sessionType', 'Intro to Rowing')">
+            <div class="option-icon">🌊</div>
+            <div class="option-name">Giriş Seansı</div>
+            <div class="option-detail">Trying to row for the first time? 60-minute guided rowing technique training.</div>
+            <span class="option-badge">Başlangıç</span>
+          </div>
+          <div class="option-card" data-type="training" onclick="selectOption(this, 'sessionType', 'Training Session')">
+            <div class="option-icon">🚣</div>
+            <div class="option-name">Antrenman Seansı</div>
+            <div class="option-detail">Planlı grup antrenmanlarımıza katılın. Hem hobi amaçlı hem de profesyonel kürekçiler için uygundur.</div>
+            <span class="option-badge">Her Seviye</span>
+          </div>
+          <div class="option-card" data-type="private" onclick="selectOption(this, 'sessionType', 'Private Coaching')">
+            <div class="option-icon">🎯</div>
+            <div class="option-name">Yarış Takımı Antrenmanı</div>
+            <div class="option-detail">Sadece yarış takımımıza özel hız odaklı antrenman ve karada kondüsyon çalışmaları.</div>
+            <span class="option-badge">Yarış ekibi</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <span></span>
+          <button class="btn-next" id="nextBtn1" disabled onclick="goToStep(2)">Seans Türünü Seçin →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: DATE & TIME -->
+      <div class="form-step" id="step2">
+        <h2 class="form-heading"><em>Tarih.</em>seçin </h2>
+        <p class="form-subheading">Uygun bir tarih ve tercih ettiğiniz saat dilimini seçin.</p>
+
+        <span class="slot-label">Marrt 2026</span>
+        <div class="calendar-grid">
+          <div class="cal-day">Mon</div><div class="cal-day">Tue</div><div class="cal-day">Wed</div>
+          <div class="cal-day">Thu</div><div class="cal-day">Fri</div><div class="cal-day">Sat</div><div class="cal-day">Sun</div>
+          <!-- Week 1 offset -->
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell empty"></div>
+          <div class="cal-cell" onclick="selectDate(this, 'Sat 7 Mar')">7</div>
+          <div class="cal-cell unavailable">8</div>
+          <!-- Week 2 -->
+          <div class="cal-cell" onclick="selectDate(this, 'Mon 9 Mar')">9</div>
+          <div class="cal-cell today" onclick="selectDate(this, 'Tue 10 Mar')">10</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Wed 11 Mar')">11</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Thu 12 Mar')">12</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Fri 13 Mar')">13</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Sat 14 Mar')">14</div>
+          <div class="cal-cell unavailable">15</div>
+          <!-- Week 3 -->
+          <div class="cal-cell" onclick="selectDate(this, 'Mon 16 Mar')">16</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Tue 17 Mar')">17</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Wed 18 Mar')">18</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Thu 19 Mar')">19</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Fri 20 Mar')">20</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Sat 21 Mar')">21</div>
+          <div class="cal-cell unavailable">22</div>
+          <!-- Week 4 -->
+          <div class="cal-cell" onclick="selectDate(this, 'Mon 23 Mar')">23</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Tue 24 Mar')">24</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Wed 25 Mar')">25</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Thu 26 Mar')">26</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Fri 27 Mar')">27</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Sat 28 Mar')">28</div>
+          <div class="cal-cell unavailable">29</div>
+          <!-- Week 5 -->
+          <div class="cal-cell" onclick="selectDate(this, 'Mon 30 Mar')">30</div>
+          <div class="cal-cell" onclick="selectDate(this, 'Tue 31 Mar')">31</div>
+        </div>
+
+        <span class="slot-label">Available Times</span>
+        <div class="time-slots">
+          <div class="time-slot full">6:00 AM</div>
+          <div class="time-slot" onclick="selectTime(this, '7:00 AM')">7:00 AM</div>
+          <div class="time-slot" onclick="selectTime(this, '8:30 AM')">8:30 AM</div>
+          <div class="time-slot full">10:00 AM</div>
+          <div class="time-slot" onclick="selectTime(this, '12:00 PM')">12:00 PM</div>
+          <div class="time-slot" onclick="selectTime(this, '2:00 PM')">2:00 PM</div>
+          <div class="time-slot" onclick="selectTime(this, '4:30 PM')">4:30 PM</div>
+          <div class="time-slot" onclick="selectTime(this, '6:00 PM')">6:00 PM</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goToStep(1)">← Geri</button>
+          <button class="btn-next" id="nextBtn2" disabled onclick="goToStep(3)">Detayları Seçin →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: DETAILS -->
+      <div class="form-step" id="step3">
+        <h2 class="form-heading">Kendinizden  <em>bahsedin.</em></h2>
+        <p class="form-subheading">Size en uygun seansı hazırlayabilmemiz için lütfen bilgilerinizi doldurun.</p>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label>İsim</label>
+            <input type="text" id="firstName" placeholder="e.g. Sophia" oninput="checkDetails()"/>
+          </div>
+          <div class="field-group">
+            <label>Soyisim</label>
+            <input type="text" id="lastName" placeholder="e.g. Chen" oninput="checkDetails()"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Email Adresi</label>
+            <input type="email" id="email" placeholder="you@example.com" oninput="checkDetails()"/>
+          </div>
+          <div class="field-group">
+            <label>Telefon Numarası</label>
+            <input type="tel" id="phone" placeholder="+1 (555) 000-0000" oninput="checkDetails()"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Tecrübe seviyeniz </label>
+          <select id="experience" onchange="checkDetails()">
+            <option value="">Seviyenizi seçiniz</option>
+            <option>Başlangıç Seviyesi</option>
+            <option>Eğlence amaçlı (1-2 yıl)</option>
+            <option>Kulüp düzeyinde yarışma (3+ yaş)</option>
+            <option>İleri seviye / Ulusal seviye</option>
+            <option>Master kürekçi</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Katılımcı Sayısı</label>
+          <select id="participants" onchange="checkDetails()">
+            <option value="">Seçiniz</option>
+            <option>1 (sadece ben)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Ek Notlar (isteğe bağlı)</label>
+          <textarea id="notes" placeholder="Herhangi bir sakatlığınız, hedefiniz veya bize bildirmek istediğiniz bir sorunuz varsa..."></textarea>
+        </div>
+        <div class="field-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="waiver" onchange="checkDetails()"/>
+            <label for="waiver">Kulüp  <a href="#">Kulüp feragatnamesini ve sorumluluk politikasını kabul ediyorum</a>, ve en az 25 metre yüzebildiğimi onaylıyorum.</label>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="goToStep(2)">← Geri</button>
+          <button class="btn-next" id="nextBtn3" disabled onclick="goToStep(4)">Rezervasyonu görüntüle →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: CONFIRMATION -->
+      <div class="form-step" id="step4">
+        <h2 class="form-heading">Rezervasyonunuzu  <em>onaylayın.</em></h2>
+        <p class="form-subheading">Lütfen aşağıdaki detayları inceleyin. Onaylandıktan sonra, 24 saat içinde size bir onay e-postası göndereceğiz..</p>
+
+        <div class="summary-card">
+          <div class="summary-title">Rezervasyon Detayları</div>
+          <div class="summary-row"><span class="summary-key">Seans Türü</span><span class="summary-val highlight" id="s-type">—</span></div>
+          <div class="summary-row"><span class="summary-key">Tarih</span><span class="summary-val" id="s-date">—</span></div>
+          <div class="summary-row"><span class="summary-key">Zaman</span><span class="summary-val" id="s-time">—</span></div>
+          <div class="summary-row"><span class="summary-key">Kişi</span><span class="summary-val" id="s-name">—</span></div>
+          <div class="summary-row"><span class="summary-key">Email</span><span class="summary-val" id="s-email">—</span></div>
+          <div class="summary-row"><span class="summary-key">Seviye</span><span class="summary-val" id="s-level">—</span></div>
+          <div class="summary-row"><span class="summary-key">Katılımcı</span><span class="summary-val" id="s-participants">—</span></div>
+          <div class="summary-row"><span class="summary-key">Lokasyon</span><span class="summary-val">Altınboynuz Spor Kulübü, Haliç</span></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goToStep(3)">← Detayları Düzenle</button>
+          <button class="btn-next" onclick="submitBooking()">Rezervasyonu onayla ✓</button>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-panel" id="successPanel">
+        <div class="success-icon">🎉</div>
+        <h2 class="success-title">Rezervasyon <em>yapıldı!</em></h2>
+        <p class="success-body">Rezervasyonunuz alındı. Ekibimiz 24 saat içinde e-posta adresinize tam bir onay gönderecektir. Sizi suda görmeyi dört gözle bekliyoruz!p>
+        <div class="success-ref" id="bookingRef">REF: CW-000000</div>
+        <br>
+        <a href="index.html" class="btn-home">Anasayfaya Geri Dön →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div>
+       <div class="footer-brand">İstanbul Teknik Üniversitesi <span>Kürek Takımı</span></div>
+      <div class="footer-tagline">1773'ten beri· Suda kusursuzluk.</div>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Anasayfa</a>
+      <a href="index.html#team">Takım</a>
+      <a href="index.html#schedule">Takvim</a>
+      <a href="team.html">Program</a>
+      <a href="index.html#schedule">Takvim</a>
+    </div>
+  </footer>
+
+
+
+
+  <script>
+    const booking = { sessionType: null, date: null, time: null };
+
+    function selectOption(el, key, value) {
+      el.closest('.option-grid').querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      booking[key] = value;
+      document.getElementById('nextBtn1').disabled = false;
+    }
+
+    function selectDate(el, dateStr) {
+      if (el.classList.contains('unavailable') || el.classList.contains('empty')) return;
+      document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      booking.date = dateStr;
+      checkDateTimeSelection();
+    }
+
+    function selectTime(el, timeStr) {
+      if (el.classList.contains('full')) return;
+      document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
+      el.classList.add('selected');
+      booking.time = timeStr;
+      checkDateTimeSelection();
+    }
+
+    function checkDateTimeSelection() {
+      document.getElementById('nextBtn2').disabled = !(booking.date && booking.time);
+    }
+
+    function checkDetails() {
+      const fn = document.getElementById('firstName').value.trim();
+      const ln = document.getElementById('lastName').value.trim();
+      const em = document.getElementById('email').value.trim();
+      const ex = document.getElementById('experience').value;
+      const pa = document.getElementById('participants').value;
+      const wa = document.getElementById('waiver').checked;
+      document.getElementById('nextBtn3').disabled = !(fn && ln && em && ex && pa && wa);
+    }
+
+    function goToStep(n) {
+      document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + n).classList.add('active');
+      document.querySelectorAll('.step').forEach(s => {
+        const sn = parseInt(s.dataset.step);
+        s.classList.remove('active', 'done');
+        if (sn === n) s.classList.add('active');
+        else if (sn < n) s.classList.add('done');
+      });
+      if (n === 4) populateSummary();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function populateSummary() {
+      document.getElementById('s-type').textContent = booking.sessionType || '—';
+      document.getElementById('s-date').textContent = booking.date || '—';
+      document.getElementById('s-time').textContent = booking.time || '—';
+      const fn = document.getElementById('firstName').value;
+      const ln = document.getElementById('lastName').value;
+      document.getElementById('s-name').textContent = `${fn} ${ln}`;
+      document.getElementById('s-email').textContent = document.getElementById('email').value;
+      document.getElementById('s-level').textContent = document.getElementById('experience').value;
+      document.getElementById('s-participants').textContent = document.getElementById('participants').value;
+    }
+
+    function submitBooking() {
+      const ref = 'CW-' + Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('bookingRef').textContent = 'REF: ' + ref;
+      document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+      document.getElementById('stepsIndicator').style.display = 'none';
+      document.getElementById('successPanel').classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>İTÜ Kürek Takımı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy: #0a1628;
+      --deep: #0d1f3c;
+      --water: #1a3a5c;
+      --slate: #2d5986;
+      --mist: #7bafd4;
+      --foam: #c8dff0;
+      --gold: #c8a84b;
+      --gold-light: #e8c96a;
+      --white: #f5f0e8;
+      --cream: #ede8dc;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.4rem 5vw;
+      background: linear-gradient(to bottom, rgba(10,22,40,0.97) 0%, transparent 100%);
+      backdrop-filter: blur(4px);
+      border-bottom: 1px solid rgba(200,168,75,0.15);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--foam); font-weight: 400; font-style: italic; }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.95rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--foam);
+      text-decoration: none; opacity: 0.8;
+      transition: opacity 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; color: var(--gold); }
+    .nav-cta {
+      background: var(--gold); color: var(--navy) !important;
+      padding: 0.55rem 1.4rem; opacity: 1 !important;
+      border-radius: 2px; font-weight: 700 !important;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--gold-light) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 5vw 8vh;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(26,58,92,0.6) 0%, transparent 70%),
+        linear-gradient(175deg, #0a1628 0%, #0d2a4a 40%, #0f3560 70%, #0a1628 100%);
+    }
+    /* animated water lines */
+    .water-lines {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        rgba(123,175,212,0.04) 28px,
+        rgba(123,175,212,0.04) 30px
+      );
+      animation: waterShift 8s linear infinite;
+    }
+    @keyframes waterShift {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(60px); }
+    }
+    .hero-oar {
+      position: absolute; right: 8vw; top: 50%; transform: translateY(-50%) rotate(-15deg);
+      width: 420px; opacity: 0.12;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18rem; font-weight: 700; color: var(--mist);
+      user-select: none; pointer-events: none; letter-spacing: -0.05em;
+    }
+    .hero-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem; font-weight: 600; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1.2rem; opacity: 0;
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 8vw, 7.5rem);
+      font-weight: 900; line-height: 0.92;
+      color: var(--white); margin-bottom: 1.8rem;
+      opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-title em { color: var(--gold); font-style: italic; }
+    .hero-subtitle {
+      max-width: 560px;
+      font-size: 1.1rem; font-weight: 300; line-height: 1.7;
+      color: var(--foam); opacity: 0;
+      animation: fadeUp 0.8s 0.7s forwards;
+    }
+    .hero-actions {
+      display: flex; gap: 1.2rem; align-items: center;
+      margin-top: 2.5rem; opacity: 0;
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+    .btn-primary {
+      background: var(--gold); color: var(--navy);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 1rem 2.2rem;
+      text-decoration: none; border-radius: 2px;
+      transition: background 0.2s, transform 0.2s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+    .btn-ghost {
+      border: 1px solid rgba(200,168,75,0.5); color: var(--gold);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; padding: 1rem 2.2rem;
+      text-decoration: none; border-radius: 2px;
+      transition: border-color 0.2s, background 0.2s;
+      display: inline-block;
+    }
+    .btn-ghost:hover { background: rgba(200,168,75,0.1); border-color: var(--gold); }
+    .scroll-indicator {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      opacity: 0.5; animation: fadeIn 1s 1.5s forwards;
+    }
+    .scroll-line {
+      width: 1px; height: 60px;
+      background: linear-gradient(to bottom, transparent, var(--gold));
+      animation: growLine 2s 1.5s ease infinite;
+    }
+    @keyframes growLine {
+      0%,100% { transform: scaleY(0); transform-origin: top; opacity: 0; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    /* ── STATS RIBBON ── */
+    .stats-ribbon {
+      background: var(--gold);
+      padding: 1.4rem 5vw;
+      display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900; color: var(--navy);
+      display: block;
+    }
+    .stat-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: rgba(10,22,40,0.7);
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 8rem 5vw; }
+    .section-tag {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1rem; display: block;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 900; line-height: 1.05;
+      color: var(--white); margin-bottom: 1.5rem;
+    }
+    .section-title em { color: var(--gold); font-style: italic; }
+    .section-body {
+      font-size: 1.05rem; font-weight: 300; line-height: 1.8;
+      color: var(--foam); max-width: 65ch;
+    }
+
+    /* ── ABOUT ── */
+    #about { background: var(--deep); }
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5rem; align-items: center;
+    }
+    .about-visual {
+      position: relative; height: 480px;
+    }
+    .about-card {
+      position: absolute; border-radius: 4px; overflow: hidden;
+    }
+    .about-card-main {
+      inset: 0;
+      background: linear-gradient(135deg, var(--water) 0%, var(--slate) 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .about-card-accent {
+      bottom: -20px; right: -20px;
+      width: 180px; height: 180px;
+      background: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .boat-icon {
+      font-size: 5rem; line-height: 1;
+      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.4));
+    }
+    .year-badge {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem; font-weight: 900;
+      color: var(--navy); text-align: center; line-height: 1.1;
+    }
+    .year-badge small {
+      display: block; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; margin-top: 0.2rem;
+    }
+    .stripe-decoration {
+      position: absolute; top: 30px; left: -30px;
+      width: 60px; height: 200px;
+      background: repeating-linear-gradient(
+        0deg, var(--gold) 0, var(--gold) 4px, transparent 4px, transparent 14px
+      );
+      opacity: 0.4;
+    }
+
+    /* ── TEAM ── */
+    #team { background: var(--navy); }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 2rem; margin-top: 3.5rem;
+    }
+    .member-card {
+      background: var(--deep);
+      border: 1px solid rgba(123,175,212,0.1);
+      border-radius: 4px; overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+    }
+    .member-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .member-card:hover .member-overlay { opacity: 1; }
+    .member-photo {
+      height: 240px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem;
+      position: relative; overflow: hidden;
+    }
+    .member-overlay {
+      position: absolute; inset: 0;
+      background: rgba(200,168,75,0.15);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .member-info { padding: 1.2rem 1.4rem; }
+    .member-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700; color: var(--white);
+      margin-bottom: 0.25rem;
+    }
+    .member-role {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .member-detail {
+      font-size: 0.85rem; color: var(--mist);
+      margin-top: 0.5rem; line-height: 1.5;
+    }
+    .member-bg-1 { background: linear-gradient(160deg, #1a3a5c, #0d2a4a); }
+    .member-bg-2 { background: linear-gradient(160deg, #0f3560, #1a2f4a); }
+    .member-bg-3 { background: linear-gradient(160deg, #2d5986, #1a3a5c); }
+    .member-bg-4 { background: linear-gradient(160deg, #1a2f4a, #0a1628); }
+    .member-bg-5 { background: linear-gradient(160deg, #0d2a4a, #2d5986); }
+    .member-bg-6 { background: linear-gradient(160deg, #1e4060, #0f3560); }
+
+    /* ── SCHEDULE ── */
+    #schedule { background: var(--deep); }
+    .schedule-list { margin-top: 3rem; display: flex; flex-direction: column; gap: 1rem; }
+    .schedule-item {
+      display: grid; grid-template-columns: 100px 1fr auto;
+      align-items: center; gap: 2rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(123,175,212,0.08);
+      border-left: 3px solid var(--gold);
+      padding: 1.4rem 1.8rem; border-radius: 0 4px 4px 0;
+      transition: background 0.2s;
+    }
+    .schedule-item:hover { background: rgba(255,255,255,0.06); }
+    .schedule-date {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 900; color: var(--gold);
+      line-height: 1;
+    }
+    .schedule-date small {
+      display: block; font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--mist); margin-top: 0.2rem;
+    }
+    .schedule-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em;
+      color: var(--white); margin-bottom: 0.3rem;
+    }
+    .schedule-place { font-size: 0.9rem; color: var(--mist); font-weight: 300; }
+    .badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.35rem 0.9rem;
+      border-radius: 2px;
+    }
+    .badge-open { background: rgba(200,168,75,0.15); color: var(--gold); border: 1px solid rgba(200,168,75,0.3); }
+    .badge-full { background: rgba(123,175,212,0.1); color: var(--mist); border: 1px solid rgba(123,175,212,0.2); }
+    .badge-upcoming { background: rgba(45,89,134,0.3); color: var(--foam); border: 1px solid rgba(123,175,212,0.15); }
+
+    /* ── JOIN / CTA ── */
+    #join {
+      background: linear-gradient(135deg, var(--water) 0%, var(--navy) 100%);
+      position: relative; overflow: hidden;
+      text-align: center;
+    }
+    #join::before {
+      content: ''; position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 400px;
+      background: radial-gradient(ellipse, rgba(200,168,75,0.08) 0%, transparent 70%);
+    }
+    #join .section-title { color: var(--white); max-width: 700px; margin: 0 auto 1.5rem; }
+    #join .section-body { margin: 0 auto 2.5rem; text-align: center; }
+    .cta-buttons { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #060e1a;
+      padding: 3rem 5vw;
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; gap: 2rem;
+      border-top: 1px solid rgba(200,168,75,0.1);
+    }
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 900; color: var(--gold);
+    }
+    .footer-brand span { color: var(--foam); font-style: italic; font-weight: 400; }
+    .footer-tagline { color: var(--mist); font-size: 0.85rem; font-weight: 300; margin-top: 0.3rem; }
+    .footer-links { display: flex; gap: 1.8rem; flex-wrap: wrap; }
+    .footer-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--mist);
+      text-decoration: none; opacity: 0.7; transition: opacity 0.2s, color 0.2s;
+    }
+    .footer-links a:hover { opacity: 1; color: var(--gold); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 60px; height: 3px;
+      background: linear-gradient(to right, var(--gold), transparent);
+      margin: 1.5rem 0;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 0.5; }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-visual { height: 300px; }
+      .schedule-item { grid-template-columns: 80px 1fr; }
+      .schedule-item .badge { display: none; }
+      footer { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">İTÜ<span> Kürek Takımı</span></a>
+    <ul class="nav-links">
+      <li><a href="#about">Hakkımızda</a></li>
+      <li><a href="#team">Takım</a></li>
+      <li><a href="#schedule">Takvim</a></li>
+      <li><a href="team.html">Programımız</a></li>
+      <li><a href="reservation.html" class="nav-cta">Yerinizi Ayırtın</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="water-lines"></div>
+    <div class="hero-oar">⁓</div>
+    <p class="hero-eyebrow">1773'ten beri· Suda kusursuzluk</p>
+    <h1 class="hero-title">Bizimle<br><em>Kürek Çek.</em></h1>
+    <p class="hero-subtitle">İTÜ Kürek Kulübü, spora, suya ve her şeyi değerli kılan takım ruhuna adanmış, rekabetçi ve eğlence amaçlı bir kürek topluluğudur.
+</p>
+    <div class="hero-actions">
+      <a href="reservation.html" class="btn-primary">Yerinizi Ayırtın</a>
+      <a href="#about" class="btn-ghost">Takımımızı Keşfedin</a>
+    </div>
+    <div class="scroll-indicator">
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- STATS RIBBON -->
+  <div class="stats-ribbon">
+    <div class="stat-item">
+      <span class="stat-num">5</span>
+      <span class="stat-label">Yılı Aşkın Yarış Tecrübesi</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">120+</span>
+      <span class="stat-label">Aktif Üye</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">47</span>
+      <span class="stat-label">Şampiyonluk Madalyası</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">12</span>
+      <span class="stat-label">Bot Türü</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">6</span>
+      <span class="stat-label">Ulusal Madalya</span>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-grid">
+      <div class="about-content reveal">
+        <span class="section-tag">Biz kimiz /span>
+        <h2 class="section-title">Su üzerinde <em>doğdu,</em><br>ekip çalışmasıyla inşa edildi.</h2>
+        <div class="divider"></div>
+        <p class="section-body">
+          2017 yılında İstanbul'da kurulan kulübümüz, bir avuç tutkulu kürekçiden bölgenin en saygın kürek topluluklarından birine dönüştü. Yeni başlayanlardan elit yarışmacılara kadar herkesi aynı özveri ve dostluk ruhuyla karşılıyoruz.        </p>
+        <p class="section-body" style="margin-top:1rem;">
+          Antrenör kadromuz, ulusal ve uluslararası yarışmalardan edindiği onlarca yıllık deneyime sahiptir. Su üzerindeki her antrenman, ustalaşma arayışıdır ve sonrasında yenen her yemek, aidiyet duygusunun bir kutlamasıdır.        </p>
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+          <a href="team.html" class="btn-primary">Programımız</a>
+          <a href="#join" class="btn-ghost">Takıma Katıl!</a>
+        </div>
+      </div>
+      <div class="about-visual reveal">
+        <div class="stripe-decoration"></div>
+        <div class="about-card about-card-main">
+          <div class="boat-icon">🚣</div>
+        </div>
+        <div class="about-card about-card-accent">
+          <div class="year-badge">2017'de<small>kuruldu</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM PREVIEW -->
+  <section id="team">
+    <span class="section-tag reveal">Ekiple Tanış</span>
+    <h2 class="section-title reveal">Her <em>Kürek</em> çekişinin<br>arkasındaki ekip.</h2>
+    <p class="section-body reveal">Kadromuzda her seviyeden sporcu bulunmaktadır. Her üyenin yolculuğu hakkında daha fazla bilgi edinmek için tam takım sayfamıza tıklayın.</p>
+
+    <div class="team-grid">
+      <div class="member-card reveal">
+        <div class="member-photo member-bg-1">
+          <span>👤</span>
+          <div class="member-overlay"></div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Berk Hakyol</div>
+          <div class="member-role">Head Coach</div>
+          <div class="member-detail">20 years coaching · Former Olympic athlete</div>
+        </div>
+      </div>
+      <div class="member-card reveal">
+        <div class="member-photo member-bg-2">
+          <span>👤</span> <!--resim eklenicek  -->
+          <div class="member-overlay"></div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">İrem </div>
+          <div class="member-role">Captain · Women's Eight</div>
+          <div class="member-detail">National champion 2023 · 6 years rowing</div>
+        </div>
+      </div>
+      <div class="member-card reveal">
+        <div class="member-photo member-bg-3">
+          <span>👤</span>
+          <div class="member-overlay"></div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Tobias Reimer</div>
+          <div class="member-role">Captain · Men's Eight</div>
+          <div class="member-detail">Stroke seat · Regional champion</div>
+        </div>
+      </div>
+      <div class="member-card reveal">
+        <div class="member-photo member-bg-4">
+          <span>👤</span>
+          <div class="member-overlay"></div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Amara Diallo</div>
+          <div class="member-role">Coxswain</div>
+          <div class="member-detail">Expert race strategist · 4 years</div>
+        </div>
+      </div>
+      <div class="member-card reveal">
+        <div class="member-photo member-bg-5">
+          <span>👤</span>
+          <div class="member-overlay"></div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Lena Bauer</div>
+          <div class="member-role">Assistant Coach</div>
+          <div class="member-detail">Sculling specialist · Masters rower</div>
+        </div>
+      </div>
+      <div class="member-card reveal">
+        <div class="member-photo member-bg-6">
+          <span>👤</span>
+          <div class="member-overlay"></div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">James Okafor</div>
+          <div class="member-role">Bow · Men's Four</div>
+          <div class="member-detail">3 years rowing · Rising star</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top: 3rem;">
+      <a href="team.html" class="btn-primary reveal">View Full Roster →</a>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section id="schedule">
+    <span class="section-tag reveal">Yaklaşan Etkinliklerimiz</span>
+    <h2 class="section-title reveal">Yarış <em>takvimimiz</em><br>& çalışma takvimimiz</h2>
+    <div class="schedule-list">
+      <div class="schedule-item reveal">
+        <div class="schedule-date">MAR<small>22</small></div>
+        <div>
+          <div class="schedule-name">Spring Invitational Regatta</div>
+          <div class="schedule-place">📍 Crest River, North Basin</div>
+        </div>
+        <span class="badge badge-open">Aktif</span>
+      </div>
+      <div class="schedule-item reveal">
+        <div class="schedule-date">APR<small>05</small></div>
+        <div>
+          <div class="schedule-name">Club Open-Water Training Day</div>
+          <div class="schedule-place">📍 Lake Meridian</div>
+        </div>
+        <span class="badge badge-open">Dolu</span>
+      </div>
+      <div class="schedule-item reveal">
+        <div class="schedule-date">APR<small>19</small></div>
+        <div>
+          <div class="schedule-name">Regional Championships — Heat 1</div>
+          <div class="schedule-place">📍 Harrow River Sports Complex</div>
+        </div>
+        <span class="badge badge-full">Sadece Üyeler</span>
+      </div>
+      <div class="schedule-item reveal">
+        <div class="schedule-date">MAY<small>10</small></div>
+        <div>
+          <div class="schedule-name">Milli takım denemeleri</div>
+          <div class="schedule-place">📍 Capital Rowing Center</div>
+        </div>
+        <span class="badge badge-upcoming">Yaklaşıyor</span>
+      </div>
+      <div class="schedule-item reveal">
+        <div class="schedule-date">JUN<small>07</small></div>
+        <div>
+          <div class="schedule-name">Summer Masters Regatta</div>
+          <div class="schedule-place">📍 Eastport Harbor</div>
+        </div>
+        <span class="badge badge-open">Açık</span>
+      </div>
+    </div>
+    <div style="margin-top: 2.5rem; text-align: center;">
+      <a href="reservation.html" class="btn-primary reveal">Yerinizi ayırtın!</a>
+    </div>
+  </section>
+
+  <!-- JOIN CTA -->
+  <section id="join">
+    <span class="section-tag">Kürek çekmeye hazır mısın?</span>
+    <h2 class="section-title"> <em>İlk</em> küreği çek </h2>
+    <p class="section-body">Whether you're a complete beginner or a seasoned racer, there's a seat in our boat with your name on it. Join the family, feel the water, find your rhythm.</p>
+    <div class="cta-buttons">
+      <a href="reservation.html" class="btn-primary">Deneme Seansında Yerinizi Alın</a>
+      <a href="team.html" class="btn-ghost">Programımızı Keşfedin</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand">İstanbul Teknik Üniversitesi <span>Kürek Takımı</span></div>
+      <div class="footer-tagline">1773'ten beri· Suda kusursuzluk.</div>
+    </div>
+    <div class="footer-links">
+      <a href="#about">Hakkımızda</a>
+      <a href="#team">Takım</a>
+      <a href="#schedule">Takvim</a>
+      <a href="team.html">Program</a>
+      <a href="reservation.html">Rezervasyon</a>
+    </div>
+  </footer>
+
+  <script>
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
