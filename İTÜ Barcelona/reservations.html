@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rezervasyonlarım · İTÜ Saha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    :root { --lime: #a8e063; --white: #f5f2eb; --dark: #0d1b0f; --border: rgba(255,255,255,0.08); --card: rgba(255,255,255,0.04); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--white); min-height: 100vh; }
+
+    .topbar { background: #0f2214; border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 50; }
+    .topbar-logo { font-family: 'Bebas Neue', cursive; font-size: 22px; color: var(--lime); letter-spacing: 3px; text-decoration: none; }
+    .tb-btn { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: none; color: rgba(245,242,235,0.6); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all .2s; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .tb-btn:hover { border-color: var(--lime); color: var(--lime); }
+
+    .main { max-width: 800px; margin: 0 auto; padding: 32px 16px; }
+    .page-title { font-family: 'Bebas Neue', cursive; font-size: 48px; letter-spacing: 2px; margin-bottom: 6px; }
+    .page-sub { color: rgba(245,242,235,0.4); font-size: 14px; margin-bottom: 28px; }
+
+    /* Filter Tabs */
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filter-tab { padding: 8px 18px; border-radius: 999px; border: 1px solid var(--border); background: none; color: rgba(245,242,235,0.5); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; transition: all .2s; }
+    .filter-tab.active { background: rgba(168,224,99,0.1); border-color: rgba(168,224,99,0.4); color: var(--lime); }
+    .filter-tab:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+    /* Cards */
+    .res-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .res-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+      transition: border-color .2s;
+    }
+    .res-card:hover { border-color: rgba(255,255,255,0.15); }
+    .res-card.upcoming { border-color: rgba(168,224,99,0.2); }
+    .res-card.expired { opacity: .5; }
+
+    .res-date-block { flex-shrink: 0; text-align: center; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 16px; min-width: 70px; }
+    .res-day { font-family: 'Bebas Neue', cursive; font-size: 32px; line-height: 1; color: var(--white); }
+    .res-month { font-size: 11px; color: rgba(245,242,235,0.5); text-transform: uppercase; letter-spacing: 1px; }
+
+    .res-info { flex: 1; min-width: 160px; }
+    .res-time { font-size: 18px; font-weight: 700; }
+    .res-weekday { font-size: 13px; color: rgba(245,242,235,0.5); margin-top: 2px; }
+    .res-id { font-size: 11px; color: rgba(245,242,235,0.25); margin-top: 4px; font-family: monospace; }
+
+    .res-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .res-status { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .status-upcoming { background: rgba(168,224,99,0.15); color: var(--lime); border: 1px solid rgba(168,224,99,0.3); }
+    .status-expired { background: rgba(255,255,255,0.06); color: rgba(245,242,235,0.3); border: 1px solid rgba(255,255,255,0.08); }
+    .status-canceled { background: rgba(239,68,68,0.1); color: rgba(239,68,68,0.7); border: 1px solid rgba(239,68,68,0.2); }
+
+    .cancel-btn {
+      padding: 7px 16px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 999px; color: rgba(239,68,68,0.8); font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .cancel-btn:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.5); }
+
+    .empty-state { text-align: center; padding: 80px 20px; color: rgba(245,242,235,0.3); }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .5; }
+    .empty-state p { font-size: 15px; margin-bottom: 20px; }
+    .new-res-btn { display: inline-flex; gap: 8px; align-items: center; padding: 12px 24px; background: rgba(168,224,99,0.1); border: 1px solid rgba(168,224,99,0.3); border-radius: 999px; color: var(--lime); text-decoration: none; font-weight: 600; transition: all .2s; }
+    .new-res-btn:hover { background: rgba(168,224,99,0.2); }
+
+    .loading { text-align: center; padding: 60px; color: rgba(245,242,235,0.3); }
+    .spinner { display: inline-block; width: 32px; height: 32px; border: 2px solid rgba(168,224,99,0.2); border-top-color: var(--lime); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 1000; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: rgba(134,239,172,0.15); border: 1px solid rgba(134,239,172,0.4); color: #86efac; }
+    .toast.error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">İTÜ SAHA</a>
+    <div style="display:flex; gap:8px;">
+      <a href="main.html" class="tb-btn">⚽ Rezervasyon Yap</a>
+      <a href="profile.html" class="tb-btn">👤 Profilim</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-title">REZERVASYONLARİM</div>
+    <p class="page-sub">Tüm rezervasyon geçmişiniz burada</p>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">Tümü</button>
+      <button class="filter-tab" data-filter="upcoming" onclick="setFilter('upcoming', this)">Yaklaşan</button>
+      <button class="filter-tab" data-filter="past" onclick="setFilter('past', this)">Geçmiş</button>
+      <button class="filter-tab" data-filter="canceled" onclick="setFilter('canceled', this)">İptal Edildi</button>
+    </div>
+
+    <div class="res-list" id="resList">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBZcSMT3kxPG7XE3ro-jSNio_BDIDuN74",
+      authDomain: "barcelona-sahasi.firebaseapp.com",
+      projectId: "barcelona-sahasi",
+      storageBucket: "barcelona-sahasi.firebasestorage.app",
+      messagingSenderId: "22476229958",
+      appId: "1:22476229958:web:4b2095e55a08e699856947"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let allReservations = [];
+    let currentFilter = 'all';
+    let currentUser = null;
+
+    const months = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+    const weekdays = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+
+    auth.onAuthStateChanged(async u => {
+      if (!u) { window.location.href = 'login.html'; return; }
+      currentUser = u;
+      await loadReservations();
+    });
+
+    async function loadReservations() {
+      const list = document.getElementById('resList');
+      list.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+      try {
+        const q = await db.collection('reservations')
+          .where('userId', '==', currentUser.uid)
+          .orderBy('date', 'desc').get();
+
+        allReservations = [];
+        q.forEach(doc => allReservations.push({ id: doc.id, ...doc.data() }));
+        renderList();
+      } catch(e) {
+        list.innerHTML = `<div class="empty-state"><p>Rezervasyonlar yüklenemedi.</p></div>`;
+      }
+    }
+
+    function setFilter(f, el) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderList();
+    }
+
+    function renderList() {
+      const now = new Date();
+      const list = document.getElementById('resList');
+      let items = allReservations;
+
+      if (currentFilter === 'upcoming') items = items.filter(r => !r.canceled && getEndTime(r) > now);
+      if (currentFilter === 'past') items = items.filter(r => !r.canceled && getEndTime(r) <= now);
+      if (currentFilter === 'canceled') items = items.filter(r => r.canceled);
+
+      if (items.length === 0) {
+        list.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>Bu kategoride rezervasyon bulunamadı.</p>
+          <a href="main.html" class="new-res-btn">⚽ Yeni Rezervasyon Yap</a>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = '';
+      items.forEach(r => list.appendChild(createCard(r, now)));
+    }
+
+    function getEndTime(r) {
+      const d = r.date.toDate();
+      d.setHours(r.endHour || r.startHour + 1, 0, 0, 0);
+      return d;
+    }
+
+    function createCard(r, now) {
+      const d = r.date.toDate();
+      const endTime = getEndTime(r);
+      const isUpcoming = !r.canceled && endTime > now;
+      const isCanceled = r.canceled;
+
+      const card = document.createElement('div');
+      card.className = 'res-card' + (isUpcoming ? ' upcoming' : isCanceled ? '' : ' expired');
+
+      let statusHtml, actionHtml = '';
+      if (isCanceled) {
+        statusHtml = '<span class="res-status status-canceled">İptal Edildi</span>';
+      } else if (endTime > now) {
+        statusHtml = '<span class="res-status status-upcoming">Aktif</span>';
+        actionHtml = `<button class="cancel-btn" onclick="cancelRes('${r.id}')">İptal Et</button>`;
+      } else {
+        statusHtml = '<span class="res-status status-expired">Tamamlandı</span>';
+      }
+
+      card.innerHTML = `
+        <div class="res-date-block">
+          <div class="res-day">${d.getDate()}</div>
+          <div class="res-month">${months[d.getMonth()]} ${d.getFullYear()}</div>
+        </div>
+        <div class="res-info">
+          <div class="res-time">${String(r.startHour).padStart(2,'0')}:00 – ${String(r.endHour || r.startHour+1).padStart(2,'0')}:00</div>
+          <div class="res-weekday">${weekdays[d.getDay()]}</div>
+          <div class="res-id">#${r.id}</div>
+        </div>
+        <div class="res-meta">
+          ${statusHtml}
+          ${actionHtml}
+        </div>
+      `;
+      return card;
+    }
+
+    async function cancelRes(id) {
+      if (!confirm('Bu rezervasyonu iptal etmek istediğinize emin misiniz?')) return;
+      try {
+        await db.collection('reservations').doc(id).update({ canceled: true });
+        showToast('✅ Rezervasyon iptal edildi.', 'success');
+        await loadReservations();
+      } catch(e) {
+        showToast('İptal başarısız: ' + e.message, 'error');
+      }
+    }
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type}`;
+      setTimeout(() => t.classList.add('show'), 10);
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+</html>

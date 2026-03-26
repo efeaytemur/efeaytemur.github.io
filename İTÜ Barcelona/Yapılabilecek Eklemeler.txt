@@ -1,0 +1,1 @@
+Backend Ekleyip Firebase'de sistemi kurup gerçek işleyen bir sistem kurmak ama İTÜ'den Barcelona sahası böyle bir talepte bulunmuyor o yüzden kullanışlı olduğu söylenemez.

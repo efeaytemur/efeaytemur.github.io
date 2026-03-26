@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rezervasyon · İTÜ Saha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --lime: #a8e063; --white: #f5f2eb; --dark: #0d1b0f;
+      --mid: #162a1b; --border: rgba(255,255,255,0.08);
+      --card: rgba(255,255,255,0.04);
+      --disabled: #1e2e20; --reserved: rgba(239,68,68,0.15);
+      --reserved-border: rgba(239,68,68,0.4);
+      --selected: rgba(168,224,99,0.2); --selected-border: var(--lime);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--white); min-height: 100vh; }
+
+    /* TOPBAR */
+    .topbar {
+      background: #0f2214; border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-logo { font-family: 'Bebas Neue', cursive; font-size: 22px; color: var(--lime); letter-spacing: 3px; text-decoration: none; }
+    .topbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .tb-btn {
+      padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: none; color: rgba(245,242,235,0.6); font-family: 'DM Sans', sans-serif;
+      font-size: 13px; cursor: pointer; transition: all .2s; font-weight: 500; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .tb-btn:hover { border-color: var(--lime); color: var(--lime); }
+    .tb-btn.active { background: rgba(168,224,99,0.1); border-color: rgba(168,224,99,0.4); color: var(--lime); }
+
+    .main { max-width: 1000px; margin: 0 auto; padding: 24px 16px; }
+
+    /* DATE CONTROLS */
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 20px;
+    }
+    .date-nav {
+      display: flex; align-items: center; gap: 0;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden;
+    }
+    .nav-arrow {
+      width: 40px; height: 44px; display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: rgba(245,242,235,0.5); cursor: pointer;
+      font-size: 16px; transition: all .2s;
+    }
+    .nav-arrow:hover { background: rgba(168,224,99,0.08); color: var(--lime); }
+    .date-display {
+      padding: 0 16px; font-size: 15px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; min-width: 220px; text-align: center;
+      border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+      line-height: 44px;
+    }
+    .date-display:hover { color: var(--lime); }
+    .cal-btn {
+      padding: 10px 16px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; color: rgba(245,242,235,0.6); cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; transition: all .2s;
+    }
+    .cal-btn:hover { border-color: var(--lime); color: var(--lime); }
+    .find-btn {
+      padding: 10px 16px; background: rgba(168,224,99,0.1); border: 1px solid rgba(168,224,99,0.3);
+      border-radius: 12px; color: var(--lime); cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; transition: all .2s;
+    }
+    .find-btn:hover { background: rgba(168,224,99,0.2); }
+    #calendar { display: none; }
+
+    /* LEGEND */
+    .legend {
+      display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(245,242,235,0.5); }
+    .legend-dot { width: 12px; height: 12px; border-radius: 4px; }
+    .ld-available { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
+    .ld-selected { background: var(--lime); }
+    .ld-reserved { background: rgba(239,68,68,0.4); }
+
+    /* TIME GRID */
+    .grid-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+    }
+    .grid-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    }
+    .grid-header-title { font-weight: 700; font-size: 15px; }
+    .grid-header-sub { font-size: 12px; color: rgba(245,242,235,0.4); }
+
+    .time-grid {
+      display: grid; padding: 16px; gap: 10px;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    @media(max-width:700px){ .time-grid { grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:420px){ .time-grid { grid-template-columns: repeat(2,1fr); } }
+
+    .slot {
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+      padding: 14px 10px; text-align: center; cursor: pointer;
+      transition: all .15s; user-select: none;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .slot-time { font-size: 13px; font-weight: 700; }
+    .slot-end { font-size: 11px; color: rgba(245,242,235,0.4); }
+    .slot:hover:not(.slot-reserved):not(.slot-past) { border-color: rgba(168,224,99,0.4); background: rgba(168,224,99,0.06); }
+    .slot.slot-selected { border-color: var(--lime); background: rgba(168,224,99,0.15); }
+    .slot.slot-selected .slot-time, .slot.slot-selected .slot-end { color: var(--lime); }
+    .slot.slot-reserved {
+      border-color: rgba(239,68,68,0.25); background: rgba(239,68,68,0.07);
+      cursor: not-allowed;
+    }
+    .slot.slot-reserved .slot-time { color: rgba(239,68,68,0.7); }
+    .slot.slot-reserved .slot-end { color: rgba(239,68,68,0.4); }
+    .slot-badge { font-size: 9px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 2px 6px; border-radius: 999px; margin-top: 2px; }
+    .badge-reserved { background: rgba(239,68,68,0.2); color: rgba(239,68,68,0.8); }
+    .slot.slot-past { opacity: .3; cursor: not-allowed; }
+
+    /* FOOTER SUMMARY */
+    .summary {
+      padding: 16px 20px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .price-display { }
+    .price-label { font-size: 11px; color: rgba(245,242,235,0.4); text-transform: uppercase; letter-spacing: 1px; }
+    .price-value { font-family: 'Bebas Neue', cursive; font-size: 40px; color: var(--lime); line-height: 1; }
+    .price-zero { color: rgba(245,242,235,0.2); }
+
+    .selected-info { font-size: 14px; color: rgba(245,242,235,0.6); }
+
+    .reserve-btn {
+      padding: 13px 28px; background: var(--lime); color: var(--dark);
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .25s;
+      box-shadow: 0 4px 20px rgba(168,224,99,0.25);
+    }
+    .reserve-btn:hover { background: #c5f07a; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(168,224,99,0.4); }
+    .reserve-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* LOADING OVERLAY */
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(13,27,15,0.8); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; z-index: 999; display: none;
+    }
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(168,224,99,0.2); border-top-color: var(--lime); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+      padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600;
+      transform: translateY(80px); opacity: 0; transition: all .3s;
+      max-width: 320px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: rgba(134,239,172,0.15); border: 1px solid rgba(134,239,172,0.4); color: #86efac; }
+    .toast.error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; }
+
+    /* Flatpickr theme override */
+    .flatpickr-calendar { background: #162a1b; border: 1px solid var(--border); }
+    .flatpickr-day { color: var(--white); }
+    .flatpickr-day.selected { background: var(--lime); color: var(--dark); border-color: var(--lime); }
+    .flatpickr-day:hover { background: rgba(168,224,99,0.1); }
+    .flatpickr-months { background: #0f2214; }
+    .flatpickr-month { color: var(--white); }
+    .flatpickr-current-month { color: var(--white); }
+    .numInputWrapper span { border-color: var(--border); }
+    .flatpickr-weekday { color: rgba(245,242,235,0.4); }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">İTÜ SAHA</a>
+    <div class="topbar-right">
+      <a href="reservations.html" class="tb-btn">📋 Rezervasyonlarım</a>
+      <a href="profile.html" class="tb-btn">👤 Profilim</a>
+      <button class="tb-btn" id="logoutBtn">Çıkış</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="controls">
+      <div class="date-nav">
+        <button class="nav-arrow" id="prevDay">←</button>
+        <div class="date-display" id="dateDisplay">Yükleniyor...</div>
+        <button class="nav-arrow" id="nextDay">→</button>
+      </div>
+      <button class="find-btn" id="findFreeBtn">✨ Boş Saat Bul</button>
+      <button class="cal-btn" id="calBtn">📅 Takvim</button>
+      <input type="text" id="calendar">
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot ld-available"></div> Müsait</div>
+      <div class="legend-item"><div class="legend-dot ld-selected"></div> Seçildi</div>
+      <div class="legend-item"><div class="legend-dot ld-reserved"></div> Dolu</div>
+    </div>
+
+    <div class="grid-card">
+      <div class="grid-header">
+        <div>
+          <div class="grid-header-title">Saat Seçimi</div>
+          <div class="grid-header-sub" id="gridSub">Bir saat dilimi seçin</div>
+        </div>
+        <div id="weekendBadge" style="display:none; background:rgba(245,200,66,0.15); border:1px solid rgba(245,200,66,0.4); color:#f5c842; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600;">📅 Haftasonu Fiyatı</div>
+      </div>
+
+      <div class="time-grid" id="timeGrid"></div>
+
+      <div class="summary">
+        <div class="price-display">
+          <div class="price-label">Tutar</div>
+          <div class="price-value price-zero" id="priceDisplay">0 ₺</div>
+        </div>
+        <div class="selected-info" id="selectedInfo">Saat seçilmedi</div>
+        <button class="reserve-btn" id="reserveBtn" disabled>Rezervasyon Yap</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBZcSMT3kxPG7XE3ro-jSNio_BDIDuN74",
+      authDomain: "barcelona-sahasi.firebaseapp.com",
+      projectId: "barcelona-sahasi",
+      storageBucket: "barcelona-sahasi.firebasestorage.app",
+      messagingSenderId: "22476229958",
+      appId: "1:22476229958:web:4b2095e55a08e699856947"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const HOURS = Array.from({length: 15}, (_, i) => i + 9); // 09-23
+    let selectedDate = new Date(); selectedDate.setHours(12, 0, 0, 0);
+    let selectedHour = null;
+    let reservedHours = new Set();
+    let currentUser = null;
+    let userKategori = '';
+
+    const nfTL = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 });
+
+    // Auth
+    auth.onAuthStateChanged(async u => {
+      if (!u) { window.location.href = 'login.html'; return; }
+      currentUser = u;
+      // Load kategori from profile
+      try {
+        const snap = await db.collection('profile').doc(u.uid).get();
+        if (snap.exists) userKategori = snap.data().kategori || '';
+      } catch(_) {}
+      updatePrice();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => window.location.href = 'login.html');
+    });
+
+    // Pricing
+    function isWeekend(d) { const day = d.getDay(); return day === 0 || day === 6; }
+    function calcPrice(kategori, d) {
+      const k = (kategori || '').toLowerCase().trim();
+      const wend = isWeekend(d);
+      const prices = { ogrenci: [730,730], personel: [1120,1400], emekli: [1120,1400], mezun: [1750,2640], misafir: [2100,3500] };
+      const p = prices[k];
+      return p ? (wend ? p[1] : p[0]) : 0;
+    }
+
+    function updatePrice() {
+      const price = selectedHour !== null ? calcPrice(userKategori, selectedDate) : 0;
+      const el = document.getElementById('priceDisplay');
+      if (price > 0) {
+        el.textContent = nfTL.format(price); el.classList.remove('price-zero');
+      } else {
+        el.textContent = '0 ₺'; el.classList.add('price-zero');
+      }
+      document.getElementById('selectedInfo').textContent = selectedHour !== null
+        ? `${String(selectedHour).padStart(2,'0')}:00 – ${String(selectedHour+1).padStart(2,'0')}:00`
+        : 'Saat seçilmedi';
+      document.getElementById('reserveBtn').disabled = selectedHour === null;
+    }
+
+    // Date formatting
+    function formatDate(d) {
+      return d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    function dateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // Render grid
+    function renderGrid() {
+      const grid = document.getElementById('timeGrid');
+      grid.innerHTML = '';
+      const now = new Date();
+      const isToday = dateKey(selectedDate) === dateKey(now);
+
+      HOURS.forEach(h => {
+        const btn = document.createElement('div');
+        btn.className = 'slot';
+        const isPast = isToday && h < now.getHours();
+        const isReserved = reservedHours.has(h);
+        const isSelected = h === selectedHour;
+
+        btn.innerHTML = `
+          <div class="slot-time">${String(h).padStart(2,'0')}:00</div>
+          <div class="slot-end">${String(h+1).padStart(2,'0')}:00</div>
+          ${isReserved ? '<div class="slot-badge badge-reserved">Dolu</div>' : ''}
+        `;
+
+        if (isPast) btn.classList.add('slot-past');
+        else if (isReserved) btn.classList.add('slot-reserved');
+        else if (isSelected) btn.classList.add('slot-selected');
+
+        if (!isPast && !isReserved) {
+          btn.addEventListener('click', () => {
+            selectedHour = (selectedHour === h) ? null : h;
+            renderGrid(); updatePrice();
+          });
+        }
+        grid.appendChild(btn);
+      });
+
+      // Weekend badge
+      document.getElementById('weekendBadge').style.display = isWeekend(selectedDate) ? '' : 'none';
+      document.getElementById('gridSub').textContent = `${reservedHours.size} dolu · ${HOURS.length - reservedHours.size} müsait`;
+    }
+
+    async function loadDay() {
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      reservedHours.clear();
+
+      const start = new Date(selectedDate); start.setHours(0,0,0,0);
+      const end = new Date(selectedDate); end.setHours(23,59,59,999);
+
+      try {
+        const q = await db.collection('reservations')
+          .where('date', '>=', firebase.firestore.Timestamp.fromDate(start))
+          .where('date', '<=', firebase.firestore.Timestamp.fromDate(end))
+          .where('canceled', '==', false).get();
+        q.forEach(doc => {
+          const r = doc.data();
+          if (typeof r.startHour === 'number') reservedHours.add(r.startHour);
+        });
+      } catch(e) { console.error(e); }
+
+      document.getElementById('loadingOverlay').style.display = 'none';
+      renderGrid();
+    }
+
+    function changeDay(delta) {
+      selectedDate.setDate(selectedDate.getDate() + delta);
+      selectedDate.setHours(12,0,0,0);
+      selectedHour = null;
+      document.getElementById('dateDisplay').textContent = formatDate(selectedDate);
+      updatePrice(); loadDay();
+    }
+
+    // Find first free
+    document.getElementById('findFreeBtn').addEventListener('click', () => {
+      const now = new Date();
+      const isToday = dateKey(selectedDate) === dateKey(now);
+      for (const h of HOURS) {
+        const isPast = isToday && h < now.getHours();
+        if (!reservedHours.has(h) && !isPast) {
+          selectedHour = h; renderGrid(); updatePrice();
+          // Scroll to grid
+          document.getElementById('timeGrid').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return;
+        }
+      }
+      showToast('Bugün için müsait saat bulunamadı.', 'error');
+    });
+
+    // Reserve
+    document.getElementById('reserveBtn').addEventListener('click', async () => {
+      if (!currentUser) { window.location.href = 'login.html'; return; }
+      if (selectedHour === null) return;
+
+      const btn = document.getElementById('reserveBtn');
+      btn.disabled = true; btn.textContent = 'Kaydediliyor...';
+      document.getElementById('loadingOverlay').style.display = 'flex';
+
+      const docId = `${dateKey(selectedDate)}_${selectedHour}`;
+      try {
+        await db.collection('reservations').doc(docId).set({
+          date: firebase.firestore.Timestamp.fromDate(new Date(selectedDate)),
+          startHour: selectedHour, endHour: selectedHour + 1,
+          canceled: false, userId: currentUser.uid,
+          price: calcPrice(userKategori, selectedDate),
+          kategori: userKategori,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: false });
+
+        showToast(`✅ Rezervasyon yapıldı! ${String(selectedHour).padStart(2,'0')}:00 – ${String(selectedHour+1).padStart(2,'0')}:00`, 'success');
+        selectedHour = null;
+        updatePrice(); await loadDay();
+      } catch(err) {
+        if (err.code === 'already-exists' || (err.message && err.message.toLowerCase().includes('already'))) {
+          showToast('⚠️ Bu saat zaten rezerve edilmiş.', 'error');
+        } else {
+          showToast('Rezervasyon başarısız: ' + err.message, 'error');
+        }
+        await loadDay();
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+        btn.disabled = selectedHour === null; btn.textContent = 'Rezervasyon Yap';
+      }
+    });
+
+    // Toast helper
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type}`;
+      setTimeout(() => t.classList.add('show'), 10);
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // Navigation
+    document.getElementById('prevDay').addEventListener('click', () => changeDay(-1));
+    document.getElementById('nextDay').addEventListener('click', () => changeDay(1));
+    document.getElementById('calBtn').addEventListener('click', () => document.getElementById('calendar')._flatpickr.open());
+    document.getElementById('dateDisplay').addEventListener('click', () => document.getElementById('calendar')._flatpickr.open());
+
+    // Flatpickr
+    flatpickr('#calendar', {
+      defaultDate: selectedDate, locale: 'tr',
+      onChange: dates => {
+        if (dates[0]) {
+          selectedDate = dates[0]; selectedDate.setHours(12,0,0,0);
+          selectedHour = null;
+          document.getElementById('dateDisplay').textContent = formatDate(selectedDate);
+          updatePrice(); loadDay();
+        }
+      }
+    });
+
+    // Init
+    document.getElementById('dateDisplay').textContent = formatDate(selectedDate);
+    loadDay();
+    updatePrice();
+  </script>
+</body>
+</html>

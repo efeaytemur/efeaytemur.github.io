@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Panel · İTÜ Saha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    :root { --lime: #a8e063; --white: #f5f2eb; --dark: #0d1b0f; --border: rgba(255,255,255,0.08); --card: rgba(255,255,255,0.04); --gold: #f5c842; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: var(--white); min-height: 100vh; }
+
+    .topbar { background: #0f2214; border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar-logo { font-family: 'Bebas Neue', cursive; font-size: 22px; color: var(--lime); letter-spacing: 3px; text-decoration: none; }
+    .admin-badge { background: rgba(245,200,66,0.15); border: 1px solid rgba(245,200,66,0.4); color: var(--gold); padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .tb-btn { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: none; color: rgba(245,242,235,0.6); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all .2s; font-weight: 500; text-decoration: none; }
+    .tb-btn:hover { border-color: var(--lime); color: var(--lime); }
+
+    .main { max-width: 1000px; margin: 0 auto; padding: 32px 16px; }
+    .page-title { font-family: 'Bebas Neue', cursive; font-size: 48px; letter-spacing: 2px; margin-bottom: 6px; }
+    .page-sub { color: rgba(245,242,235,0.4); font-size: 14px; margin-bottom: 28px; }
+
+    /* Controls */
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 24px; }
+    .date-nav { display: flex; align-items: center; gap: 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .nav-arrow { width: 40px; height: 44px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(245,242,235,0.5); cursor: pointer; font-size: 16px; transition: all .2s; }
+    .nav-arrow:hover { background: rgba(168,224,99,0.08); color: var(--lime); }
+    .date-display { padding: 0 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; min-width: 220px; text-align: center; border-left: 1px solid var(--border); border-right: 1px solid var(--border); line-height: 44px; }
+    .cal-btn { padding: 10px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: rgba(245,242,235,0.6); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; transition: all .2s; }
+    .cal-btn:hover { border-color: var(--lime); color: var(--lime); }
+    #calendar { display: none; }
+
+    /* Stats row */
+    .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .stat-chip { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; min-width: 140px; }
+    .stat-chip .label { font-size: 11px; color: rgba(245,242,235,0.4); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-chip .value { font-family: 'Bebas Neue', cursive; font-size: 32px; color: var(--lime); }
+
+    .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:700px){ .grid-layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .card-title { font-size: 14px; font-weight: 700; }
+    .card-sub { font-size: 12px; color: rgba(245,242,235,0.4); margin-top: 2px; }
+
+    /* Time grid admin */
+    .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px; }
+    .slot { border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all .15s; }
+    .slot-time { font-size: 12px; font-weight: 700; }
+    .slot:hover:not(.slot-reserved) { border-color: rgba(168,224,99,0.4); background: rgba(168,224,99,0.05); }
+    .slot.slot-selected { border-color: var(--lime); background: rgba(168,224,99,0.15); }
+    .slot.slot-selected .slot-time { color: var(--lime); }
+    .slot.slot-reserved { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.07); cursor: not-allowed; }
+    .slot.slot-reserved .slot-time { color: rgba(239,68,68,0.7); }
+    .slot-badge { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 999px; margin-top: 2px; display: inline-block; }
+    .badge-r { background: rgba(239,68,68,0.2); color: rgba(239,68,68,0.8); }
+
+    .card-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-fill { flex: 1; padding: 11px; background: var(--lime); color: var(--dark); border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .btn-fill:hover { background: #c5f07a; }
+    .btn-clear { flex: 1; padding: 11px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: rgba(239,68,68,0.8); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; }
+    .btn-clear:hover { background: rgba(239,68,68,0.2); }
+    .btn-select-all { padding: 11px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: rgba(245,242,235,0.6); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all .2s; }
+
+    /* All Reservations Table */
+    .res-table { width: 100%; border-collapse: collapse; }
+    .res-table th { padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(245,242,235,0.4); text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .res-table td { padding: 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .res-table tr:last-child td { border-bottom: none; }
+    .status-badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .st-active { background: rgba(168,224,99,0.12); color: var(--lime); }
+    .st-past { background: rgba(255,255,255,0.06); color: rgba(245,242,235,0.3); }
+    .st-canceled { background: rgba(239,68,68,0.1); color: rgba(239,68,68,0.7); }
+    .table-wrap { padding: 0; max-height: 400px; overflow-y: auto; }
+    .empty-row td { text-align: center; padding: 40px; color: rgba(245,242,235,0.25); }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 1000; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: rgba(134,239,172,0.15); border: 1px solid rgba(134,239,172,0.4); color: #86efac; }
+    .toast.error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">İTÜ SAHA</a>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span class="admin-badge">🔧 Admin</span>
+      <button class="tb-btn" onclick="auth.signOut().then(()=>window.location.href='login.html')">Çıkış</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-title">ADMİN PANEL</div>
+    <p class="page-sub">Rezervasyon yönetimi ve saha kontrolü</p>
+
+    <div class="controls">
+      <div class="date-nav">
+        <button class="nav-arrow" id="prevDay">←</button>
+        <div class="date-display" id="dateDisplay">Yükleniyor...</div>
+        <button class="nav-arrow" id="nextDay">→</button>
+      </div>
+      <button class="cal-btn" id="calBtn">📅 Takvim</button>
+      <input type="text" id="calendar">
+    </div>
+
+    <div class="stats">
+      <div class="stat-chip"><div class="label">Toplam</div><div class="value" id="statTotal">—</div></div>
+      <div class="stat-chip"><div class="label">Dolu</div><div class="value" id="statReserved">—</div></div>
+      <div class="stat-chip"><div class="label">Müsait</div><div class="value" id="statFree">—</div></div>
+    </div>
+
+    <div class="grid-layout">
+      <!-- Left: Time Grid -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Saat Yönetimi</div>
+          <div class="card-sub">Saatleri seçip dolu yapın veya rezervasyonu kaldırın</div>
+        </div>
+        <div class="admin-grid" id="adminGrid"></div>
+        <div class="card-footer">
+          <button class="btn-select-all" id="selectAllBtn">Tümünü Seç</button>
+          <button class="btn-fill" id="fillBtn">✅ Dolu Yap</button>
+          <button class="btn-clear" id="clearBtn">🗑 Seçileni İptal Et</button>
+        </div>
+      </div>
+
+      <!-- Right: All reservations for this day -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Günün Rezervasyonları</div>
+          <div class="card-sub">Bu güne ait tüm aktif rezervasyonlar</div>
+        </div>
+        <div class="table-wrap">
+          <table class="res-table">
+            <thead>
+              <tr>
+                <th>Saat</th>
+                <th>Kullanıcı</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="resTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBZcSMT3kxPG7XE3ro-jSNio_BDIDuN74",
+      authDomain: "barcelona-sahasi.firebaseapp.com",
+      projectId: "barcelona-sahasi",
+      storageBucket: "barcelona-sahasi.firebasestorage.app",
+      messagingSenderId: "22476229958",
+      appId: "1:22476229958:web:4b2095e55a08e699856947"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const HOURS = Array.from({length: 15}, (_, i) => i + 9);
+    let selectedDate = new Date(); selectedDate.setHours(12,0,0,0);
+    let reservedHours = new Map(); // hour -> docId
+    let selectedHours = new Set();
+    let allDocsByHour = new Map(); // hour -> doc
+
+    function dateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function formatDate(d) { return d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+
+    function renderAdminGrid() {
+      const grid = document.getElementById('adminGrid');
+      grid.innerHTML = '';
+      HOURS.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'slot';
+        const isReserved = reservedHours.has(h);
+        const isSelected = selectedHours.has(h);
+        el.innerHTML = `
+          <div class="slot-time">${String(h).padStart(2,'0')}:00</div>
+          ${isReserved ? '<div class="slot-badge badge-r">Dolu</div>' : ''}
+        `;
+        if (isReserved) el.classList.add('slot-reserved');
+        else if (isSelected) el.classList.add('slot-selected');
+
+        el.addEventListener('click', () => {
+          if (isReserved) return;
+          if (selectedHours.has(h)) selectedHours.delete(h);
+          else selectedHours.add(h);
+          renderAdminGrid();
+        });
+        grid.appendChild(el);
+      });
+
+      // Stats
+      document.getElementById('statTotal').textContent = HOURS.length;
+      document.getElementById('statReserved').textContent = reservedHours.size;
+      document.getElementById('statFree').textContent = HOURS.length - reservedHours.size;
+    }
+
+    async function loadDay() {
+      reservedHours.clear();
+      selectedHours.clear();
+      allDocsByHour.clear();
+
+      const start = new Date(selectedDate); start.setHours(0,0,0,0);
+      const end = new Date(selectedDate); end.setHours(23,59,59,999);
+
+      const q = await db.collection('reservations')
+        .where('date', '>=', firebase.firestore.Timestamp.fromDate(start))
+        .where('date', '<=', firebase.firestore.Timestamp.fromDate(end))
+        .where('canceled', '==', false).get();
+
+      q.forEach(doc => {
+        const r = doc.data();
+        if (typeof r.startHour === 'number') {
+          reservedHours.set(r.startHour, doc.id);
+          allDocsByHour.set(r.startHour, { id: doc.id, ...r });
+        }
+      });
+
+      renderAdminGrid();
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('resTableBody');
+      const now = new Date();
+      if (allDocsByHour.size === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Bu gün için rezervasyon yok.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      [...allDocsByHour.entries()].sort((a,b)=>a[0]-b[0]).forEach(([h, r]) => {
+        const endDate = r.date.toDate(); endDate.setHours(r.endHour || h+1, 0,0,0);
+        const isPast = endDate < now;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${String(h).padStart(2,'0')}:00 – ${String(h+1).padStart(2,'0')}:00</strong></td>
+          <td style="font-size:11px; color:rgba(245,242,235,0.4);">${r.userId ? r.userId.slice(0,8)+'…' : 'Admin'}</td>
+          <td><span class="status-badge ${isPast?'st-past':'st-active'}">${isPast?'Tamamlandı':'Aktif'}</span></td>
+          <td><button onclick="adminCancelHour(${h})" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.8);padding:4px 10px;border-radius:999px;cursor:pointer;font-size:11px;font-weight:600;">İptal</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function adminCancelHour(h) {
+      const docData = allDocsByHour.get(h);
+      if (!docData) return;
+      if (!confirm(`${String(h).padStart(2,'0')}:00 rezervasyonunu iptal et?`)) return;
+      try {
+        await db.collection('reservations').doc(docData.id).update({ canceled: true });
+        showToast(`${String(h).padStart(2,'0')}:00 iptal edildi.`, 'success');
+        await loadDay();
+      } catch(e) { showToast('Hata: ' + e.message, 'error'); }
+    }
+
+    // Fill selected
+    document.getElementById('fillBtn').addEventListener('click', async () => {
+      if (selectedHours.size === 0) { showToast('En az bir saat seçin.', 'error'); return; }
+      const dk = dateKey(selectedDate);
+      let errors = 0;
+      for (const h of selectedHours) {
+        const docId = `${dk}_${h}`;
+        try {
+          const d = new Date(selectedDate); d.setHours(0,0,0,0);
+          await db.collection('reservations').doc(docId).set({
+            date: firebase.firestore.Timestamp.fromDate(d),
+            startHour: h, endHour: h+1, canceled: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: false });
+        } catch(_) { errors++; }
+      }
+      showToast(errors > 0 ? `${errors} saat zaten doluydu.` : `✅ ${selectedHours.size} saat dolu yapıldı.`, errors > 0 ? 'error' : 'success');
+      await loadDay();
+    });
+
+    // Clear/cancel selected
+    document.getElementById('clearBtn').addEventListener('click', async () => {
+      const toCancel = [...selectedHours].filter(h => reservedHours.has(h));
+      if (toCancel.length === 0) { showToast('İptal edilecek dolu saat seçilmedi.', 'error'); return; }
+      if (!confirm(`${toCancel.length} rezervasyonu iptal et?`)) return;
+      for (const h of toCancel) {
+        const id = reservedHours.get(h);
+        if (id) await db.collection('reservations').doc(id).update({ canceled: true });
+      }
+      showToast(`✅ ${toCancel.length} rezervasyon iptal edildi.`, 'success');
+      await loadDay();
+    });
+
+    document.getElementById('selectAllBtn').addEventListener('click', () => {
+      const freeHours = HOURS.filter(h => !reservedHours.has(h));
+      if (selectedHours.size === freeHours.length) selectedHours.clear();
+      else freeHours.forEach(h => selectedHours.add(h));
+      renderAdminGrid();
+    });
+
+    function changeDay(delta) {
+      selectedDate.setDate(selectedDate.getDate() + delta);
+      selectedDate.setHours(12,0,0,0);
+      document.getElementById('dateDisplay').textContent = formatDate(selectedDate);
+      loadDay();
+    }
+
+    document.getElementById('prevDay').addEventListener('click', () => changeDay(-1));
+    document.getElementById('nextDay').addEventListener('click', () => changeDay(1));
+    document.getElementById('calBtn').addEventListener('click', () => document.getElementById('calendar')._flatpickr.open());
+
+    flatpickr('#calendar', {
+      defaultDate: selectedDate, locale: 'tr',
+      onChange: dates => {
+        if (dates[0]) {
+          selectedDate = dates[0]; selectedDate.setHours(12,0,0,0);
+          document.getElementById('dateDisplay').textContent = formatDate(selectedDate);
+          loadDay();
+        }
+      }
+    });
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type}`;
+      setTimeout(() => t.classList.add('show'), 10);
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // Init
+    document.getElementById('dateDisplay').textContent = formatDate(selectedDate);
+    loadDay();
+  </script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kayıt Ol · İTÜ Saha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <style>
+    :root {
+      --grass: #1a472a; --lime: #a8e063; --white: #f5f2eb; --dark: #0d1b0f;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif; background: var(--dark);
+      color: var(--white); min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    @media(max-width:768px){ body { grid-template-columns: 1fr; } }
+
+    .left-panel {
+      background: linear-gradient(145deg, #0d2010 0%, #1a472a 50%, #0d2010 100%);
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 40px; position: relative; overflow: hidden;
+    }
+    .left-panel::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(255,255,255,0.03) 60px, rgba(255,255,255,0.03) 61px),
+        repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.03) 60px, rgba(255,255,255,0.03) 61px);
+    }
+    @media(max-width:768px){ .left-panel { display: none; } }
+    .left-logo { font-family: 'Bebas Neue', cursive; font-size: 32px; color: var(--lime); letter-spacing: 4px; text-decoration: none; position: relative; }
+    .left-hero { position: relative; }
+    .left-hero h2 { font-family: 'Bebas Neue', cursive; font-size: 80px; line-height: 0.9; color: var(--white); margin-bottom: 20px; }
+    .left-hero h2 em { color: var(--lime); font-style: normal; }
+    .left-hero p { color: rgba(245,242,235,0.5); font-size: 15px; line-height: 1.7; max-width: 320px; font-weight: 300; }
+
+    .steps { position: relative; display: flex; flex-direction: column; gap: 12px; }
+    .step { display: flex; align-items: center; gap: 12px; }
+    .step-num { width: 32px; height: 32px; border-radius: 50%; background: rgba(168,224,99,0.2); border: 1px solid rgba(168,224,99,0.4); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--lime); flex-shrink: 0; }
+    .step-text { font-size: 14px; color: rgba(245,242,235,0.6); }
+
+    .right-panel { display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .form-box { width: 100%; max-width: 400px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: rgba(245,242,235,0.4); text-decoration: none; font-size: 14px; margin-bottom: 40px; transition: color .2s; }
+    .back-link:hover { color: var(--lime); }
+    h1 { font-family: 'Bebas Neue', cursive; font-size: 52px; letter-spacing: 2px; margin-bottom: 8px; }
+    .subtitle { color: rgba(245,242,235,0.5); font-size: 14px; margin-bottom: 32px; font-weight: 300; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(245,242,235,0.5); margin-bottom: 8px; }
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+      color: var(--white); font-size: 15px; font-family: 'DM Sans', sans-serif;
+      outline: none; transition: all .2s;
+    }
+    .input-wrap input:focus { border-color: var(--lime); background: rgba(168,224,99,0.05); box-shadow: 0 0 0 3px rgba(168,224,99,0.1); }
+    .input-wrap input::placeholder { color: rgba(245,242,235,0.25); }
+    .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: rgba(245,242,235,0.3); font-size: 16px; padding: 4px; transition: color .2s; }
+    .eye-btn:hover { color: var(--lime); }
+
+    .pw-hint { font-size: 11px; color: rgba(245,242,235,0.35); margin-top: 6px; line-height: 1.5; }
+
+    .match-msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
+    .match-msg.ok { color: #86efac; }
+    .match-msg.err { color: #fca5a5; }
+
+    /* Password strength */
+    .strength-bar { display: flex; gap: 4px; margin-top: 8px; }
+    .strength-seg { flex: 1; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.1); transition: background .3s; }
+    .strength-seg.active-weak { background: #ef4444; }
+    .strength-seg.active-medium { background: var(--gold, #f5c842); }
+    .strength-seg.active-strong { background: #86efac; }
+
+    .btn-submit { width: 100%; padding: 15px; background: var(--lime); color: var(--dark); border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 8px; transition: all .25s; box-shadow: 0 4px 20px rgba(168,224,99,0.25); }
+    .btn-submit:hover { background: #c5f07a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(168,224,99,0.4); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .divider { text-align: center; margin: 20px 0; color: rgba(245,242,235,0.25); font-size: 13px; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: rgba(255,255,255,0.1); }
+    .divider::before { left: 0; } .divider::after { right: 0; }
+    .alt-link { text-align: center; font-size: 14px; color: rgba(245,242,235,0.4); }
+    .alt-link a { color: var(--lime); text-decoration: none; font-weight: 600; }
+    .error-msg { display: none; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="left-panel">
+    <a href="index.html" class="left-logo">İTÜ SAHA</a>
+    <div class="left-hero">
+      <h2>KAYIT<br>OL<em>UN</em></h2>
+      <p>Ücretsiz hesap oluşturun, saniyeler içinde ilk rezervasyonunuzu yapın.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Hesap oluştur</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Profil bilgilerini gir</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">Sahayı rezerve et</div></div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="form-box">
+      <a href="index.html" class="back-link">← Ana Sayfa</a>
+      <h1>KAYIT OL</h1>
+      <p class="subtitle">Hesabınızı oluşturun ve rezervasyona başlayın.</p>
+
+      <div class="form-group">
+        <label>E-posta Adresi</label>
+        <div class="input-wrap">
+          <input type="email" id="email" placeholder="ornek@itu.edu.tr" autocomplete="email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Şifre</label>
+        <div class="input-wrap">
+          <input type="password" id="password" placeholder="••••••••" autocomplete="new-password">
+          <button class="eye-btn" data-target="password" type="button">👁</button>
+        </div>
+        <div class="strength-bar">
+          <div class="strength-seg" id="s1"></div>
+          <div class="strength-seg" id="s2"></div>
+          <div class="strength-seg" id="s3"></div>
+          <div class="strength-seg" id="s4"></div>
+        </div>
+        <div class="pw-hint">En az 8 karakter, büyük/küçük harf, rakam ve sembol içermeli</div>
+      </div>
+
+      <div class="form-group">
+        <label>Şifre (Tekrar)</label>
+        <div class="input-wrap">
+          <input type="password" id="password2" placeholder="••••••••" autocomplete="new-password">
+          <button class="eye-btn" data-target="password2" type="button">👁</button>
+        </div>
+        <div class="match-msg" id="matchMsg"></div>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
+      <button class="btn-submit" id="registerBtn" onclick="register()">Hesap Oluştur</button>
+
+      <div class="divider">veya</div>
+      <div class="alt-link">Hesabın var mı? <a href="login.html">Giriş Yap</a></div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBZcSMT3kxPG7XE3ro-jSNio_BDIDuN74",
+      authDomain: "barcelona-sahasi.firebaseapp.com",
+      projectId: "barcelona-sahasi",
+      storageBucket: "barcelona-sahasi.firebasestorage.app",
+      messagingSenderId: "22476229958",
+      appId: "1:22476229958:web:4b2095e55a08e699856947",
+      measurementId: "G-3JPM5WT1H9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Eye toggles
+    document.querySelectorAll('.eye-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const inp = document.getElementById(btn.dataset.target);
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+      });
+    });
+
+    // Strength indicator
+    document.getElementById('password').addEventListener('input', () => {
+      const p = document.getElementById('password').value;
+      let score = 0;
+      if (p.length >= 8) score++;
+      if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+      if (/\d/.test(p)) score++;
+      if (/[^A-Za-z0-9]/.test(p)) score++;
+      const cls = score <= 1 ? 'active-weak' : score <= 2 ? 'active-medium' : 'active-strong';
+      [1,2,3,4].forEach(i => {
+        const el = document.getElementById('s'+i);
+        el.className = 'strength-seg';
+        if (i <= score) el.classList.add(cls);
+      });
+      validatePasswords();
+    });
+
+    document.getElementById('password2').addEventListener('input', validatePasswords);
+
+    function validatePasswords() {
+      const p1 = document.getElementById('password').value;
+      const p2 = document.getElementById('password2').value;
+      const msg = document.getElementById('matchMsg');
+      if (!p2) { msg.textContent = ''; return false; }
+      if (p1 === p2) {
+        msg.textContent = '✓ Şifreler eşleşiyor'; msg.className = 'match-msg ok'; return true;
+      } else {
+        msg.textContent = '✗ Şifreler eşleşmiyor'; msg.className = 'match-msg err'; return false;
+      }
+    }
+
+    function isStrong(p) {
+      return p.length >= 8 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9]/.test(p);
+    }
+
+    async function register() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const password2 = document.getElementById('password2').value;
+      const btn = document.getElementById('registerBtn');
+      const errEl = document.getElementById('errorMsg');
+      errEl.style.display = 'none';
+
+      if (!email || !password || !password2) {
+        errEl.textContent = 'Lütfen tüm alanları doldurun.'; errEl.style.display = 'block'; return;
+      }
+      if (password !== password2) {
+        errEl.textContent = 'Şifreler eşleşmiyor.'; errEl.style.display = 'block'; return;
+      }
+      if (!isStrong(password)) {
+        errEl.textContent = 'Şifre yeterince güçlü değil. Büyük/küçük harf, rakam ve sembol ekleyin.';
+        errEl.style.display = 'block'; return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Hesap oluşturuluyor...';
+
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        window.location.href = 'details.html';
+      } catch (err) {
+        const msgs = {
+          'auth/email-already-in-use': 'Bu e-posta adresi zaten kullanımda.',
+          'auth/invalid-email': 'Geçerli bir e-posta adresi girin.',
+          'auth/weak-password': 'Şifre çok zayıf.'
+        };
+        errEl.textContent = msgs[err.code] || 'Hata: ' + err.message;
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Hesap Oluştur';
+      }
+    }
+  </script>
+</body>
+</html>

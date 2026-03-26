@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Giriş Yap · İTÜ Saha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <style>
+    :root {
+      --grass: #1a472a; --grass-light: #2d6a4f; --lime: #a8e063;
+      --gold: #f5c842; --white: #f5f2eb; --dark: #0d1b0f; --mid: #1e3323;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif; background: var(--dark);
+      color: var(--white); min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    @media(max-width:768px){ body { grid-template-columns: 1fr; } }
+
+    /* LEFT PANEL */
+    .left-panel {
+      background: linear-gradient(145deg, #0d2010 0%, #1a472a 50%, #0d2010 100%);
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 40px; position: relative; overflow: hidden;
+    }
+    .left-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 60px, rgba(255,255,255,0.03) 60px, rgba(255,255,255,0.03) 61px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 60px, rgba(255,255,255,0.03) 60px, rgba(255,255,255,0.03) 61px
+      );
+    }
+    @media(max-width:768px){ .left-panel { display: none; } }
+    .left-logo {
+      font-family: 'Bebas Neue', cursive; font-size: 32px;
+      color: var(--lime); letter-spacing: 4px; text-decoration: none; position: relative;
+    }
+    .left-hero { position: relative; }
+    .left-hero h2 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 80px; line-height: 0.9; color: var(--white); margin-bottom: 20px;
+    }
+    .left-hero h2 em { color: var(--lime); font-style: normal; }
+    .left-hero p { color: rgba(245,242,235,0.5); font-size: 15px; line-height: 1.7; max-width: 320px; font-weight: 300; }
+    .left-bottom {
+      display: flex; gap: 20px; position: relative;
+    }
+    .lb-stat { }
+    .lb-num { font-family: 'Bebas Neue', cursive; font-size: 36px; color: var(--lime); }
+    .lb-label { font-size: 12px; color: rgba(245,242,235,0.4); }
+
+    /* RIGHT PANEL */
+    .right-panel {
+      display: flex; align-items: center; justify-content: center; padding: 40px 20px;
+    }
+    .form-box { width: 100%; max-width: 380px; }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: rgba(245,242,235,0.4); text-decoration: none; font-size: 14px;
+      margin-bottom: 40px; transition: color .2s;
+    }
+    .back-link:hover { color: var(--lime); }
+    h1 { font-family: 'Bebas Neue', cursive; font-size: 52px; letter-spacing: 2px; margin-bottom: 8px; }
+    .subtitle { color: rgba(245,242,235,0.5); font-size: 14px; margin-bottom: 36px; font-weight: 300; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: rgba(245,242,235,0.5); margin-bottom: 8px;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+      color: var(--white); font-size: 15px; font-family: 'DM Sans', sans-serif;
+      outline: none; transition: all .2s;
+    }
+    .input-wrap input:focus {
+      border-color: var(--lime); background: rgba(168,224,99,0.05);
+      box-shadow: 0 0 0 3px rgba(168,224,99,0.1);
+    }
+    .input-wrap input::placeholder { color: rgba(245,242,235,0.25); }
+    .eye-btn {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: rgba(245,242,235,0.3);
+      font-size: 16px; padding: 4px; transition: color .2s;
+    }
+    .eye-btn:hover { color: var(--lime); }
+
+    .btn-submit {
+      width: 100%; padding: 15px; background: var(--lime); color: var(--dark);
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 8px;
+      transition: all .25s; box-shadow: 0 4px 20px rgba(168,224,99,0.25);
+    }
+    .btn-submit:hover { background: #c5f07a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(168,224,99,0.4); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .divider { text-align: center; margin: 24px 0; color: rgba(245,242,235,0.25); font-size: 13px; position: relative; }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%; width: 40%; height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    .alt-link { text-align: center; font-size: 14px; color: rgba(245,242,235,0.4); }
+    .alt-link a { color: var(--lime); text-decoration: none; font-weight: 600; }
+    .alt-link a:hover { text-decoration: underline; }
+
+    .error-msg {
+      display: none; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="left-panel">
+    <a href="index.html" class="left-logo">İTÜ SAHA</a>
+    <div class="left-hero">
+      <h2>HOŞ<br>GEL<em>DİN</em></h2>
+      <p>İTÜ Ayazağa Halısahasına online rezervasyon sistemi. Anında rezervasyon, şeffaf fiyatlandırma.</p>
+    </div>
+    <div class="left-bottom">
+      <div class="lb-stat">
+        <div class="lb-num">730₺</div>
+        <div class="lb-label">Öğrenci Fiyatı</div>
+      </div>
+      <div class="lb-stat">
+        <div class="lb-num">15</div>
+        <div class="lb-label">Günlük Saat Dilimi</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="form-box">
+      <a href="index.html" class="back-link">← Ana Sayfa</a>
+      <h1>GİRİŞ YAP</h1>
+      <p class="subtitle">Hesabınıza giriş yapın, sahayı rezerve edin.</p>
+
+      <div class="form-group">
+        <label>E-posta Adresi</label>
+        <div class="input-wrap">
+          <input type="email" id="email" placeholder="ornek@itu.edu.tr" autocomplete="email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Şifre</label>
+        <div class="input-wrap">
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+          <button class="eye-btn" id="eyeBtn" type="button">👁</button>
+        </div>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
+      <button class="btn-submit" id="loginBtn" onclick="login()">Giriş Yap</button>
+
+      <div class="divider">veya</div>
+      <div class="alt-link">Hesabın yok mu? <a href="register.html">Kayıt Ol</a></div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBZcSMT3kxPG7XE3ro-jSNio_BDIDuN74",
+      authDomain: "barcelona-sahasi.firebaseapp.com",
+      projectId: "barcelona-sahasi",
+      storageBucket: "barcelona-sahasi.firebasestorage.app",
+      messagingSenderId: "22476229958",
+      appId: "1:22476229958:web:4b2095e55a08e699856947",
+      measurementId: "G-3JPM5WT1H9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Eye toggle
+    document.getElementById('eyeBtn').addEventListener('click', () => {
+      const pw = document.getElementById('password');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
+    });
+
+    // Enter key
+    document.getElementById('password').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+
+    async function login() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const errEl = document.getElementById('errorMsg');
+
+      errEl.style.display = 'none';
+
+      if (!email || !password) {
+        errEl.textContent = 'Lütfen tüm alanları doldurun.';
+        errEl.style.display = 'block'; return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = 'main.html';
+      } catch (err) {
+        const msgs = {
+          'auth/user-not-found': 'Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.',
+          'auth/wrong-password': 'Şifre hatalı. Lütfen tekrar deneyin.',
+          'auth/invalid-email': 'Geçerli bir e-posta adresi girin.',
+          'auth/too-many-requests': 'Çok fazla hatalı giriş. Lütfen daha sonra tekrar deneyin.'
+        };
+        errEl.textContent = msgs[err.code] || 'Giriş başarısız: ' + err.message;
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Giriş Yap';
+      }
+    }
+  </script>
+</body>
+</html>
